@@ -1,0 +1,2043 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Level 3 – Die Mensa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Kalam:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: eine Spalte. Oben die gezeichnete Schulszene, darunter die Aufgabe. Helles Linoleum-Grün als Grund,
+   Tafelgrün für Karten und Zahlen, Orange als einzige Signalfarbe, Lila gehört dem Zauberer. Bewusst nur ein (helles) Thema. */
+:root{
+  color-scheme:light;
+  --bg:#e9f0ec; --card:#ffffff; --line:#c3d1cb; --edge:#16302b;
+  --fg:#16302b; --dim:#4d615b; --grid:#16302b55;
+  --accent:#b84a00; --gold:#dd9a00; --magic:#6a3fb5;
+  --ruby:#c8324a; --emerald:#1a8a5e; --sapphire:#2a6fe8; --steel:#7d8f89;
+  /* Bildteile: ungefärbt hell und neutral, gefärbt kräftig */
+  --pane:#f1f4f9; --g1:#d9264a; --g2:#2a6fe8; --g3:#12a064; --g4:#f08a00;
+  --display:"Bricolage Grotesque","Trebuchet MS","Segoe UI",sans-serif;
+  --hand:"Kalam","Comic Sans MS","Segoe Print",cursive;
+  --body:"Atkinson Hyperlegible","Verdana","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}   /* nötig, wenn die Datei ohne Artifact-Rahmen geöffnet wird */
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:1.125rem/1.5 var(--body);
+  background-image:radial-gradient(circle at 50% -10%,#ffffff 0,var(--bg) 60%);background-attachment:fixed}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:20px 40px}
+.screen{display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);font-weight:700;line-height:1.05;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,7vw,3.2rem);color:var(--accent);user-select:none;-webkit-user-select:none}
+h2{font-size:1.9rem}
+h3{margin:0;font-size:1rem}
+p{margin:0;max-width:60ch}
+.dim{color:var(--dim)}
+.eyebrow{font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sapphire);outline-offset:3px}
+.btn{align-self:flex-start;background:var(--accent);color:var(--bg);border:0;border-radius:6px;padding:14px 24px;font-weight:700;min-height:56px}
+.btn.alt{background:none;color:var(--fg);border:2px solid var(--steel)}
+.hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hero>div{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.hero #rose{flex:0 0 auto}
+.rooms{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
+.room{width:100%;display:flex;gap:14px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:6px;padding:14px 16px;min-height:72px}
+.room[disabled]{opacity:.55;cursor:default}
+.room .no{font-family:var(--display);font-size:2rem;color:var(--accent);width:1.4em;text-align:center}
+.room .t{flex:1;min-width:0}
+.room .t b{display:block}
+.room .t span{font-size:.95rem;color:var(--dim)}
+.stars{color:var(--gold);letter-spacing:.1em;white-space:nowrap}
+.stars i{font-style:normal;color:var(--line)}
+.story{background:var(--card);border-left:6px solid var(--accent);padding:20px;display:flex;flex-direction:column;gap:12px}
+.voice{font-family:var(--hand);font-weight:700;font-size:1.35rem;line-height:1.25;color:var(--magic);border-left:2px dotted var(--magic);padding-left:14px}
+.voice::before{content:"Der Maskierte Magier";display:block;font-family:var(--body);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.voice:empty{display:none}
+.codebox{display:flex;flex-direction:column;gap:8px;border-top:2px solid var(--line);padding-top:16px}
+.codebox label{font-weight:700}
+.codebox .acts{align-items:stretch}
+.codebox input{flex:1 1 220px;min-width:0;min-height:56px;background:var(--card);border:2px solid var(--line);border-radius:6px;padding:0 14px;letter-spacing:.12em;text-transform:uppercase}
+.code{display:flex;flex-direction:column;gap:4px;background:var(--card);border:2px dashed var(--accent);border-radius:6px;padding:16px}
+.code strong,.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;letter-spacing:.14em}
+.code strong{font-size:clamp(1.1rem,5.2vw,2rem);letter-spacing:.08em;white-space:nowrap;color:var(--accent);user-select:all;-webkit-user-select:all}
+#tbadge{position:fixed;z-index:60;right:8px;top:calc(env(safe-area-inset-top,0px) + 6px);background:var(--ruby);color:#fff;font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:4px}
+/* Spiel (Kopfzeile: Orte, Leben, Aufgabenzähler, Schaltflächen) */
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.locks{display:flex;gap:6px}
+.locks span{width:16px;height:16px;border-radius:50%;background:var(--line);border:2px solid var(--steel)}
+.locks span.open{background:var(--emerald);border-color:var(--emerald)}
+.locks span.now{background:var(--accent);border-color:var(--accent)}
+.hud .n{font-size:.95rem;color:var(--dim);font-variant-numeric:tabular-nums}
+.tipbtn{background:var(--card);border:2px solid var(--sapphire);border-radius:6px;padding:10px 16px;min-height:52px}
+#skip,#bskip,#btime{border-color:var(--ruby)}
+.scene{font-style:italic;color:var(--dim)}
+.q{font-size:1.2rem;font-weight:700}
+.row{display:flex;gap:20px;align-items:center;justify-content:center;flex-wrap:wrap}
+.figbox{flex:1 1 220px;min-width:0;display:flex;justify-content:center}
+.fig{width:100%;height:auto;display:block}
+.cell{fill:var(--pane);stroke:var(--edge);stroke-width:4;stroke-linejoin:round}
+.cell.on{fill:var(--g)}
+.cell[data-slot]{cursor:pointer}
+.key{color:var(--steel)} .key.on{color:var(--gold)}
+.gridl{stroke:var(--grid);stroke-width:1.5;fill:none}
+.fr{display:inline-flex;flex-direction:column;align-items:center;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;vertical-align:middle}
+.fr b{padding:0 .3em}
+.fr b+b{border-top:.12em solid currentColor}
+.tray{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;min-height:84px;padding:12px;border:2px dashed var(--line);border-radius:6px}
+.drag{touch-action:none;user-select:none;-webkit-user-select:none}
+.tile{background:var(--fg);color:var(--bg);border:0;border-radius:6px;min-width:76px;min-height:76px;padding:8px 14px;font-size:1.5rem;font-weight:700;box-shadow:0 4px 0 var(--steel)}
+.tile.word{font-size:1.15rem}
+.lift{opacity:.3}
+.sel{outline:4px solid var(--sapphire);outline-offset:3px}
+.ghost{position:fixed;z-index:50;pointer-events:none;margin:0;transform:scale(1.08) rotate(-3deg)}
+.lock{flex:0 0 auto;width:130px;height:150px;border-radius:14px;background:var(--card);border:4px solid var(--steel);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);font-size:.9rem;cursor:pointer}
+.lock.open{border-color:var(--accent);background:var(--line)}
+.lab{display:flex;flex-direction:column;gap:8px}
+.labrow{display:flex;gap:12px;align-items:center}
+.slot{min-height:84px;border:3px dashed var(--steel);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:2px}
+.slot.sm{width:92px} .slot.wd{width:150px}
+.slot.full{border-style:solid;border-color:var(--accent)}
+.bar{width:92px;height:5px;background:var(--fg);border-radius:3px}
+.side{display:flex;flex-direction:column;gap:14px;align-items:center}
+.goal{font-size:2.6rem;color:var(--accent)}
+.pile{background:none;border:0;border-radius:6px;min-width:84px;min-height:84px;padding:4px;display:flex;align-items:center;justify-content:center}
+.pile svg{pointer-events:none;display:block}
+/* Level 2: Spiegel (Ablageziel mit Bild oder Bruch), Gleichungszeile, antippbarer Spiegel */
+.mirror{flex:1 1 140px;max-width:220px;min-height:240px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 12px 12px;background:var(--card);border:4px solid var(--steel);border-radius:90px 90px 8px 8px;cursor:pointer}
+.mirror.full{border-color:var(--accent)}
+.mirror>.fig{max-width:130px!important}
+.mirror>.fr{font-size:2.2rem;color:var(--accent);margin-block:14px}
+.mirror .card{width:110px}
+.op{font-size:1.8rem;font-weight:700;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.op small{font-size:1rem;color:var(--magic);white-space:nowrap}
+.given{width:92px;min-height:84px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:700;color:var(--accent)}
+.mirrorbtn{width:100%;max-width:340px;background:var(--card);border:4px solid var(--steel);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.mirrorbtn:disabled{cursor:default;border-color:var(--accent);color:var(--dim)}
+.bin .tile{min-width:64px;min-height:64px;font-size:1.25rem}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{min-height:170px;background:var(--card);border:3px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;justify-content:center;cursor:pointer}
+.bin h3{width:100%;text-align:center}
+.card{background:none;border:0;padding:4px;width:120px;border-radius:6px}
+.bin .card{width:84px}
+.msg{border-radius:6px;padding:14px 16px;background:var(--card);border-left:6px solid var(--steel);min-height:56px}
+.msg:empty{display:none}
+.msg.bad{border-color:var(--ruby)} .msg.good{border-color:var(--emerald)} .msg.tip{border-color:var(--sapphire)}
+.msg b{display:block;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.stats{display:flex;gap:28px;flex-wrap:wrap}
+.stats div{display:flex;flex-direction:column}
+.stats strong{font-family:var(--display);font-size:2.4rem;color:var(--accent);line-height:1}
+.big{font-size:2.6rem}
+.acts{display:flex;gap:12px;flex-wrap:wrap}
+/* Level 3: Geistertisch (Ablageziel), Topf (Ablageziel mit Aufgabe oder Bruch), Teller, Vorratszeile */
+.feast{width:100%;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:flex-end;background:var(--card);border:4px solid var(--steel);border-radius:8px;padding:14px 10px;cursor:pointer}
+.feast>span{width:100%;text-align:center;font-size:.9rem;color:var(--dim)}
+.seat{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+.plate{width:100%}
+.card.loaf{width:92px}
+.div{white-space:nowrap}
+.pot{flex:1 1 130px;max-width:200px;min-height:170px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 10px;background:var(--card);border:4px solid var(--steel);border-radius:8px 8px 60px 60px;cursor:pointer;font-size:2rem;font-weight:700;color:var(--accent)}
+.pot.full{border-color:var(--accent)}
+.dish{flex:0 0 auto;width:150px;height:150px;border-radius:50%;background:var(--card);border:4px solid var(--steel);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);font-size:.9rem;cursor:pointer;padding:10px}
+.dish.open{border-color:var(--accent);background:var(--line)}
+.menu{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+/* Zuordnen mit späterer Prüfung: belegtes Ziel, falsch liegendes Teil, gesperrte Prüfen-Schaltfläche */
+.slot.has{border-style:solid}
+.has>.ph{display:none}
+.mark{outline:4px solid var(--ruby);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+/* Zahleneingabe (enter, count) und Schlüsselbündel */
+.num{font:inherit;font-size:2.2rem;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;width:92px;height:84px;background:var(--fg);color:var(--bg);border:3px solid var(--steel);border-radius:6px;padding:0}
+.num:focus{outline:4px solid var(--sapphire);outline-offset:3px}
+.num:disabled{border-color:var(--accent);opacity:1}
+.bundles{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.bundle{background:var(--card);border:2px solid var(--steel);border-radius:6px;padding:6px 4px 0}
+.bundle.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .3s}
+/* Leben und Schutzschilde */
+.lives{display:inline-flex;gap:3px;align-items:center}
+.lives svg{width:24px;height:24px;display:block}
+.lives .h{fill:var(--ruby)} .lives .h.off{fill:var(--line)} .lives .s{fill:var(--sapphire)}
+/* Szene: gezeichneter Ort, Markierungen (.hs), Spielfigur */
+.scenebox{border:3px solid var(--edge);border-radius:10px;overflow:hidden;background:var(--card);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.scenebox svg{display:block;width:100%;height:auto}
+.scenebox svg svg{display:inline}      /* Geschoss im Endgegner-Bild behält seine Größe */
+#arena{cursor:default}
+.walkhint{font-weight:700}
+.hs ellipse{fill:none;stroke:var(--steel);stroke-width:3;stroke-dasharray:6 5}
+.hs path{stroke:var(--steel);stroke-width:3}
+.hs circle{fill:var(--card);stroke:var(--steel);stroke-width:3}
+.hs text{fill:var(--steel)}
+.hs.done circle{fill:var(--emerald);stroke:#fff} .hs.done text{fill:#fff}
+.hs.act circle{fill:var(--accent);stroke:#fff;transform-box:fill-box;transform-origin:center;animation:pulse 1.1s ease-in-out infinite}
+.hs.act text{fill:#fff} .hs.act ellipse,.hs.act path{stroke:var(--accent)}
+@keyframes pulse{50%{transform:scale(1.18)}}
+/* Endgegner: Zeitbalken, Antwortknöpfe */
+.tbar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.tbar i{display:block;height:100%;width:0;background:var(--ruby)}
+.bfig{display:flex;gap:20px;align-items:center;justify-content:center;flex-wrap:wrap}
+.bfig .fig{width:180px;max-width:180px!important}
+.opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.opt{background:var(--fg);color:var(--bg);border:0;border-radius:8px;min-width:96px;min-height:76px;padding:8px 18px;font-size:1.6rem;font-weight:700;box-shadow:0 4px 0 var(--steel)}
+.opt.pic{background:var(--card);border:3px solid var(--steel);width:150px;padding:8px;box-shadow:none}
+.opt.pic .fig{max-width:100%!important}
+.opt.ok{outline:5px solid var(--emerald);outline-offset:2px} .opt.bad{outline:5px solid var(--ruby);outline-offset:2px}
+.opt:disabled{cursor:default}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.hs.act circle{animation:none}}
+/* Level 3 eigenständig: Vorzeichen vor Brüchen, breite Teller für Riegel, Sprechblasen im Streit */
+.sfr{display:inline-flex;align-items:center;gap:.08em}
+.sgn{font-weight:700}
+.seat.wide{width:112px}
+.card.loaf.long{width:150px}
+.claims{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.bubble{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.who{display:flex;align-items:center;gap:8px;font-weight:700}
+.who svg{width:34px;height:auto}
+.bubble p{font-size:1.15rem}
+.opt.word{font-size:1.2rem}
+#stage .opts .opt{min-width:110px}
+/* Version 2: Stufenwahl, Ziffernfeld, Rückmeldefenster, Theke, Mehrfachauswahl, Begründungen, Lückenzeilen */
+.stufen .room .t span{display:block}
+.room .stars{font-size:1.2rem}
+.room .lockt{font-size:.85rem;color:var(--dim)}
+.code span{font-size:.95rem}
+.feast.still{cursor:default}
+.counter{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;padding:12px;background:var(--line);border-radius:8px}
+.counter .whole{width:104px}
+.counter.long .whole{width:150px}
+.counter>span{width:100%;text-align:center;font-size:.9rem;color:var(--dim)}
+.nf{width:92px;height:84px;background:var(--card);border:3px dashed var(--steel);border-radius:6px;font:inherit;font-size:2.2rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--fg);padding:0;line-height:1;text-align:center;min-width:0}
+.nf:focus{outline:none}
+.nf.on,.nf:focus{border:3px solid var(--sapphire);box-shadow:0 0 0 4px #2a6fe833}
+.nf.sm{width:72px;height:64px;font-size:1.7rem}
+.nf:disabled{border-style:solid;border-color:var(--emerald);cursor:default;opacity:1}
+.pad{display:flex;gap:12px;justify-content:center;align-items:stretch;flex-wrap:wrap}
+.pad .pk{min-width:76px}
+.pk{min-height:62px;border-radius:8px;border:0;background:var(--fg);color:var(--bg);font-size:1.6rem;font-weight:700;box-shadow:0 4px 0 var(--steel);touch-action:manipulation}
+.pk.x{background:var(--steel)}
+.pad .btn{align-self:stretch;min-width:180px}
+.btn.chk{align-self:center}
+.opt.on{outline:5px solid var(--sapphire);outline-offset:2px}
+.opt.mid{font-size:1.35rem}
+.reasons{display:flex;flex-direction:column;gap:10px}
+.reasons .opt{font-size:1.05rem;font-weight:400;text-align:left;width:100%;min-height:64px;padding:12px 16px;line-height:1.35}
+.reasons .opt .fr{font-weight:700}
+.srows{display:flex;flex-direction:column;gap:10px}
+.srow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--card);border:3px solid var(--line);border-radius:8px;padding:10px 14px;font-size:1.6rem;font-weight:700}
+.srow .cond{font-size:1.05rem;font-weight:700;color:var(--dim)}
+.srow.ok{border-color:var(--emerald)}
+.srow>span:first-child{display:inline-flex;align-items:center;gap:8px}
+.srow .fr b{min-width:76px;padding:3px 0;text-align:center}
+.bins.three{grid-template-columns:1fr 1fr 1fr}
+.bins.three .bin h3{font-size:.9rem}
+.pot>span{display:block}
+.pot .tile{min-width:56px;min-height:48px;padding:4px 8px;font-size:1rem;box-shadow:none}
+.tile.word .sfr,.tile.word .div{font-size:1.25rem}
+.binp{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
+#arena{position:relative}
+.toast{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--emerald);color:#fff;font-weight:700;padding:10px 18px;border-radius:8px;box-shadow:0 6px 16px #16302b44;white-space:nowrap}
+/* Rückmeldefenster mitten im Spiel */
+.pop{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px;background:#16302b80}
+.popcard{width:100%;max-width:540px;max-height:calc(100vh - 32px);overflow:auto;background:var(--card);border-radius:12px;border-top:10px solid var(--steel);padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 40px #16302b55;animation:popin .22s ease-out}
+.pop.good .popcard{border-color:var(--emerald)} .pop.bad .popcard{border-color:var(--ruby)} .pop.tip .popcard{border-color:var(--sapphire)}
+.pophead{display:flex;gap:14px;align-items:center}
+.popic{flex:0 0 auto;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;background:var(--steel)}
+.pop.good .popic{background:var(--emerald)} .pop.bad .popic{background:var(--ruby)} .pop.tip .popic{background:var(--sapphire)}
+#popB{display:flex;flex-direction:column;gap:10px}
+#popB .figbox{flex:0 0 auto}
+#popB .fig{max-width:150px!important}
+.popcard .btn{align-self:stretch}
+@keyframes popin{from{transform:scale(.88);opacity:0}}
+.lives .h.lost{transform-box:fill-box;transform-origin:center;animation:lose 1s ease-in-out 2}
+@keyframes lose{50%{fill:var(--ruby);transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){.popcard,.lives .h.lost{animation:none}}
+</style>
+
+<div id="tbadge" hidden>Lehrermodus</div>
+<div class="wrap">
+  <section class="screen" id="map">
+    <div class="hero">
+      <div>
+        <span class="eyebrow">Wildermuth Bruchzauber</span>
+        <h1 id="title">Level 3 · Die Mensa</h1>
+        <p>Der Maskierte Magier hat die Mensa verhext. Niemand bekommt etwas zu essen, bis gerecht geteilt ist. Thema: Brüche als Quotienten.</p>
+      </div>
+      <div id="rose"></div>
+    </div>
+    <div class="story" id="home"></div>
+    <h2>Wähle deine Stufe</h2>
+    <ul class="rooms stufen" id="stufen"></ul>
+    <div class="code" id="codebox"></div>
+    <div class="acts">
+      <button class="tipbtn" id="reset">Neuer Spieler</button>
+      <button class="tipbtn" id="loadBtn">Spielstand laden</button>
+    </div>
+    <div class="codebox" id="loadbox" hidden>
+      <label for="loadIn">Gib deinen Mensa-Code ein</label>
+      <div class="acts"><input id="loadIn" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="M2★3-XXXX-XXXX-XXX"><button class="btn" id="loadGo">Laden</button></div>
+      <p class="dim" id="loadMsg">Groß- und Kleinschreibung, Leerzeichen und Striche sind egal. Statt ★ geht auch * oder nichts.</p>
+    </div>
+    <p class="msg good" id="homeMsg" hidden></p>
+  </section>
+
+  <section class="screen" id="story" hidden>
+    <span class="eyebrow" id="stEye"></span>
+    <h2 id="stTitle"></h2>
+    <div class="story" id="stText"></div>
+    <button class="btn" id="stBtn"></button>
+  </section>
+
+  <section class="screen" id="play" hidden>
+    <div class="hud">
+      <div class="locks" id="locks" aria-hidden="true"></div>
+      <div id="lives"></div>
+      <span class="n" id="count"></span>
+      <div class="acts">
+        <button class="tipbtn" id="skip" hidden>Überspringen</button>
+        <button class="tipbtn" id="tipBtn"></button>
+        <button class="tipbtn quit">Level abbrechen</button>
+      </div>
+    </div>
+    <div class="screen" id="sceneWrap">
+      <span class="eyebrow" id="placeName"></span>
+      <div class="scenebox" id="sceneBox"></div>
+      <p class="walkhint" id="walkHint"></p>
+    </div>
+    <p class="scene" id="scene"></p>
+    <p class="voice" id="voice"></p>
+    <p class="q" id="q"></p>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="screen" id="stage"></div>
+  </section>
+
+  <section class="screen" id="boss" hidden>
+    <div class="hud">
+      <div id="blives"></div>
+      <span class="n" id="bcount"></span>
+      <div class="acts">
+        <button class="tipbtn" id="btime" hidden></button>
+        <button class="tipbtn" id="bskip" hidden>Überspringen</button>
+        <button class="tipbtn quit">Level abbrechen</button>
+      </div>
+    </div>
+    <span class="eyebrow" id="bplace"></span>
+    <div class="scenebox" id="arena"></div>
+    <div class="tbar" aria-hidden="true"><i id="tfill"></i></div>
+    <p class="q" id="bq"></p>
+    <div class="bfig" id="bfig"></div>
+    <div class="opts" id="bopts"></div>
+  </section>
+
+  <section class="screen" id="quit" hidden>
+    <span class="eyebrow">Level 3 · Die Mensa</span>
+    <h2>Bist du sicher, dass du abbrechen willst?</h2>
+    <p>Was du in diesem Durchlauf schon gelöst hast, geht verloren. Dein Mensa-Code bleibt erhalten.</p>
+    <div class="acts">
+      <button class="btn" id="quitNo">Nein, weiterspielen</button>
+      <button class="tipbtn" id="quitYes">Ja, Level abbrechen</button>
+    </div>
+  </section>
+
+  <section class="screen" id="end" hidden>
+    <span class="eyebrow" id="endEye"></span>
+    <h2 id="endTitle"></h2>
+    <div class="stars big" id="endStars"></div>
+    <div class="stats">
+      <div><strong id="endTips"></strong>Tipps genutzt</div>
+      <div><strong id="endErrs"></strong>Fehlversuche</div>
+    </div>
+    <div class="story" id="endText"></div>
+    <p id="endNew"></p>
+    <div class="code" id="endCode"></div>
+    <div class="acts">
+      <button class="btn" id="next" hidden></button>
+      <button class="btn alt" id="toMap">Zum Start</button>
+      <button class="btn alt" id="again">Diese Stufe noch einmal</button>
+    </div>
+  </section>
+</div>
+
+<div class="pop" id="pop" hidden role="dialog" aria-modal="true" aria-labelledby="popT">
+  <div class="popcard">
+    <div class="pophead"><div class="popic" id="popI" aria-hidden="true"></div><h2 id="popT"></h2></div>
+    <div id="popB"></div>
+    <button class="btn" id="popBtn"></button>
+  </div>
+</div>
+
+<script>
+/* =====================================================================================================
+   WILDERMUTH BRUCHZAUBER · LEVEL 3 "DIE MENSA" 2.2 – ÜBERGABE-NOTIZEN (für die Weiterarbeit in einem neuen Chat)
+   -----------------------------------------------------------------------------------------------------
+   WAS ES IST
+   Level 3 des Lernspiels "Wildermuth Bruchzauber" als eigene HTML-Datei, unabhängig von Level 1 und 2 spielbar.
+   Thema: Brüche als Quotienten (Lambacher Schweizer 6 BW, Kap. I.3), Klasse 6 Gymnasium BW, Tablets (Touch).
+   Eine Datei, kein Framework, keine externen Bilder; alle Grafiken per Code als SVG. Einzige externe Quelle:
+   Google Fonts (ohne Netz greifen die Ersatzschriften). Die Datei läuft offline in jedem Browser.
+   Projektordner "UB 12.10. Brüche als Quotienten": Level3_Die_Mensa_2.2.html (diese Fassung, mit eigenem
+   <!doctype html>-Gerüst), Level3_Die_Mensa_2.1.html, _2.0.html und Level3_Die_Mensa.html (ältere Fassungen),
+   Level3_Die_Mensa_2.2_Testversion.html (alle Aufgaben und Endgegner-Aufgaben zum Durchblättern, Weiter/Zurück),
+   Mensa_Codes_auswerten.html (liest neue Codes ab 2.2 und alte Codes von 2.0/2.1).
+   Veröffentlicht als Artifact "Level 3 – Die Mensa" (dort ohne Gerüst; 1.0 bleibt im Versionsverlauf).
+
+   EINSATZ IM UNTERRICHT (Stand 10.10.2026)
+   - Gebaut für den benoteten Unterrichtsbesuch Mo 12.10.2026, 5. Std. (11:25-12:10), Klasse 6b, Einzelstunde,
+     Stunde 5 der Einheit "Einführung in die rationalen Zahlen". Übungsphase ca. Minute 25-38 auf Tablets.
+   - Vorher in der Stunde: Einstieg mit Mini-Schokoladentafeln (je 4 Rippchen), 3 Tafeln für 4 Kinder, Streit
+     Elif ("1/4") gegen Jonas ("3/4"); Erarbeitung in Partnerarbeit (AB mit Expertenaufgabe 2 Pizzen für 3 Kinder);
+     Sicherung a : b = a/b mit Kürzen; Vertiefung negative Zahlen wie (−3) : 4, 3 : (−4), (−3) : (−4), (−6) : 8.
+     Das Spiel übt genau diese Inhalte, deshalb kommen Kürzen und negative Zahlen vor.
+   - Die Klasse hat Level 2 des Hauptspiels noch nicht abgeschlossen; deshalb ist Level 3 eigenständig, verrät
+     nichts aus Level 2 und braucht keinen Spielstand-Code des Hauptspiels.
+   - Lernvoraussetzung: Kürzen und Erweitern sind eingeführt, aber noch nicht bei allen gefestigt. Deshalb gibt
+     "richtig, aber nicht vollständig gekürzt" in Stufe 1 und 2 immer einen Hinweis ohne Lebensverlust; in Stufe 3
+     einmal pro Aufgabe (Verbesserung möglich, ist sie wieder falsch, kostet es ein Leben). Beim Endgegner zählt
+     es nur bei Aufgaben mit "vollständig gekürzt" im Text, dann sofort als Fehler.
+   - Folgestunden laut Plan: Std. 6 Zahlengerade und gemischte Schreibweise, Std. 7-8 Vergleichen,
+     Std. 9-12 Dezimalschreibweise. Größen mit Einheiten (3 m : 4 = 3/4 m) kommen bewusst erst in Std. 9-12.
+   - Offen: Länge (12 Aufgaben + Endgegner) für 13 Minuten nicht erprobt; die Endgegner-Zeiten in secs sind
+     geschätzt. Nach dem ersten Einsatz anpassen (secs, speed, STUFEN.time/ease, notfalls Aufgaben pro Ort kürzen).
+
+   WÜNSCHE DER LEHRKRAFT (gelten für die Weiterentwicklung)
+   - Für jeden Aufgabentyp genug verschiedene Aufgaben, damit sich beim mehrmaligen Spielen wenig wiederholt.
+   - Problemorientiert, Sprache für Sechstklässler: kurze Sätze, Operatoren klar ("Ziehe", "Tippe", "Sortiere", "Begründe").
+   - Keine echten Lehrkräfte oder Schüler als Figuren. Die Namen Elif, Jonas, Ben, Lina (Arbeitsblatt) sowie
+     Noa, Mia, Can, Lara (Lehrbuch) kommen im Spiel nicht vor; Spiel-Namen stehen in NAMES.
+   - Story spannend, aber nicht gruselig; Auflösung des Magiers nie verraten (siehe STORY).
+   - Erst im Chat planen, dann bauen; neue Fassungen als neue Datei bzw. neue Version, Vorlagen bleiben leer.
+   - Stufen unterscheiden sich nicht nur durch Zahlen, sondern durch die Art der Aufgabe (Stufe 2: erst denken,
+     dann sehen; Stufe 3: selbst eingeben). Formen der Lebensmittel passen zum Essen. Rückmeldungen im Spielfenster.
+   - Ergebnissicherung über einen Code; Auswertung in eigener HTML-Datei. Seit 2.2 kann der Code auch einen
+     Spielstand laden (gewünscht für geteilte Tablets; das Schummelrisiko ist bewusst in Kauf genommen). Kein Name im Code.
+
+   NEU IN 2.2 (Wünsche der Lehrkraft vom 11.10.)
+   - Der Snackomat wirft Essen statt Zettel ("Wehre fünf Geschosse ab"): shot(w) setzt whole(w) in #proj.
+     Textaufgaben (situ) werfen ihr eigenes Essen (quick liefert w), alle anderen ein zufälliges.
+   - Statistik je Stufe im Speicher: st[Stufe] = {n: Versuche, e: Fehler}. Ein Versuch zählt bei jedem Start der
+     Stufe (startLevel, auch nach 0 Leben). Fehler = jeder wrong() und jeder Endgegner-Fehler (bossMiss).
+   - Neuer Code M<w>★<s>-XXXX-XXXX-XXX mit Sternen, Versuchen und Fehlerklasse je Stufe (siehe MENSA-CODE).
+   - Startseite: "Neuer Spieler" (zweimal tippen, löscht den Speicher) und "Spielstand laden" (Code eingeben;
+     ist schon ein anderer Spielstand da, muss man "Ersetzen" bestätigen). restoreFrom(d) baut den Spielstand
+     aus dem Code; Fehlerzahlen werden dabei aus der Klassenmitte (CLSMID) geschätzt, Sterne über passende
+     Fehlerzahlen. Alte 7-stellige Codes lassen sich auch laden. Geladene Spielstände tragen loaded:1.
+
+   NEU IN 2.1 (Wünsche der Lehrkraft vom 11.10.)
+   - Ortsanzeige "Ort x von 6": Der Endgegner ist Ort 6 (#bplace, sechster Punkt in #locks).
+   - red Stufe 1 und 2: erst ungekürzter Bruch, dann kürzen. In Schritt 1 gibt es keine Zahlenkarten für Zähler
+     und Nenner des gekürzten Bruchs (tiles1), damit man den gekürzten Bruch nicht gleich legen kann.
+   - Streit: Bezugsgröße fett ("von einer Pizza", "von allen 3 Pizzen zusammen"); bei 2 Ganzen "von beiden ... zusammen"
+     (DAT, vonEins, vonAllen, alleNom).
+   - share Stufe 2: ohne Divisionsaufgabe, nur Bruchmaske, sechs Zahlenkarten (six).
+   - pairs Stufe 2: eine Divisionsaufgabe muss noch gekürzt werden (div mit k = 2 oder 3 erweitert).
+   - Stufe 3: Eingabe über die Tastatur des Geräts (<input inputmode="numeric">), "±" für Minus, Enter = Prüfen.
+     share Stufe 3, Schritt 2: Maske [ ] : [ ] = [ ]/[ ], alle vier Zahlen, dann Prüfen.
+     red und negq Stufe 3: Ungekürztes Ergebnis bleibt stehen, neue Maske "Kürze den Bruch vollständig" ohne
+     Lebensverlust (red2); ist sie wieder nicht richtig, kostet es ein Leben.
+   - Endgegner: jede Antippaufgabe hat mindestens 5 Antworten (five); sortq fragt jetzt "Bei welcher Kiste bekommt
+     jeder ...?" mit 5 Kisten. Zeiten secs dafür etwas länger.
+
+   NEU IN 2.0
+   - Drei Stufen (STUFEN): 1 Kochlehrling (5 Leben, 5 Tipps), 2 Küchenchef (5/4), 3 Sternekoch (4/3). Stufe 2 und 3
+     werden durch einen Sieg über den Snackomat in der Stufe davor freigeschaltet; im Lehrermodus sind alle offen.
+     Endgegner je Stufe: Zeitfaktor time 1,0/0,9/0,8, Erleichterung pro verlorenem Versuch ease 15/10/5 %, Geschosse need 5/5/6.
+   - Rückmeldefenster pop(): richtig (grün, "Weiter"), Fehler (rot, "Nochmal", das verlorene Herz blinkt),
+     Hinweis ohne Lebensverlust (blau, "Verbessern"). Die Leiste #msg (über der Aufgabe) zeigt nur noch Tipps und
+     Zwischenschritte. Beim Endgegner: Treffer als kurze Einblendung im Bild, Fehler als Fenster.
+   - Eigenes Ziffernfeld für Stufe 3 (fld, fin, pad, padKey, padVals): Feld antippen, dann Ziffern; Minus-Taste nur
+     bei negativen Zahlen; Tastatur am PC geht auch (Ziffern, Minus, Rücktaste, Enter, Tab). judge() bewertet Brüche.
+   - Lebensmittel als Formen (food, circFood, heartFood, barFood): Pizza mit Rand und Salami, Schokokuchen mit Sahne
+     und Kirsche, Pfannkuchen, Herzwaffel aus 5 Herzen (nur bei Nenner 5), Schokoriegel, Baguette mit abgerundeten
+     Enden, Mini-Schokotafel mit 4 Rippchen (nur bei Nenner 4, wie im Stundeneinstieg). Stücke in der Farbe des
+     Essens tragen Belag; Stücke in Kinderfarben (KIDC) zeigen beim Verteilen, wem sie gehören.
+   - Mensa-Code M<Stufe>★<Sterne>-<7 Zeichen> auf Startseite und Endbildschirm (makeCode). Lehrermodus-Durchläufe
+     werden nicht gespeichert. Speicher: localStorage "wildermuth-mensa2".
+
+   AUFBAU DIESER DATEI (in dieser Reihenfolge)
+   1. CSS: aus dem Hauptspiel (Farb-Tokens in :root, bewusst nur helles Thema), danach Level-3-Block und Block für 2.0.
+   2. HTML: Bildschirme #map (Startseite mit Stufenwahl und Code), #story, #play, #boss, #quit, #end; Fenster #pop.
+   3. HELFER, STUFEN, FOOD/TONE/KIDC. 4. POOLS: je Aufgabenplatz eine Liste pro Stufe ([Stufe 1, Stufe 2, Stufe 3]).
+   5. LEVEL (Orte, Texte, Aufgabenplätze, intro je Stufe), BOSSES, Speicher und Code. 6. BILDER (Essen, esser, Szenen).
+   7. CLAIM, REASON, negOpts, Ziffernfeld, judge, redHint, TYPES. 8. SPIELLOGIK mit pop/wrong/solved/finish.
+   9. ENDGEGNER. 10. Ziehen/Antippen, Klick-Verteiler. 11. Tastatur, Lehrermodus. 12. Start (window.claude.hot).
+
+   EIN LEVEL = { place, topic, startBtn, endTitle, boss, intro[[Stufe 1],[2],[3]], outro[], groups[] }
+     groups[] = Orte: { name, bg, story, voice, done, tasks[] }; tasks[] = { type, ...feste Felder, pool:[[S1],[S2],[S3]] }
+     type darf eine Funktion der Stufe sein (Küche, Platz 2: Stufe 2 negrev, sonst negq).
+     Absätze, die mit ~ beginnen, und das Feld voice spricht der Magier.
+     startLevel(skip, keep, lv) zieht je Platz zufällig EINE Variante und vermeidet gleiche Zahlen im selben Durchlauf.
+     Jede Aufgabe kennt ihre Stufe als t.lv. ACHTUNG: startLevel schreibt den Ortsindex in t.g. Kein Aufgabenfeld darf
+     deshalb g heißen (darum heißt die Kürzungszahl bei red k).
+
+   ORTE UND AUFGABENPLÄTZE (12 Plätze, in allen Stufen gleich)
+     1 Essensausgabe (bg ausgabe): share rund (Pizza, Kuchen, Pfannkuchen, Herzwaffel), share lang (Schokoriegel,
+       Baguette, Mini-Schokotafel)
+     2 Tische (bg tische): quot, quot rev, red
+     3 Küche (bg kueche, Kasse im Minus = Schulden): negq, negq bzw. negrev (Stufe 2), pairs
+     4 Kiosk (bg kiosk): situ, streit
+     5 Speisekammer (bg kammer): streit, sortq
+     danach Endgegner Snackomat 5000 (bg tische)
+
+   AUFGABENTYPEN JE STUFE (prüfen beim Ablegen, Antippen oder "Prüfen"; jeder Fehler hat einen Hinweis zum Denkfehler)
+     share  1 Ganze auf den Tisch ziehen, dann Bruch aus Zahlenkarten. 2 Ganze schon geschnitten: erst Bruch legen,
+            "Prüfen"; richtig -> Ganzes für Ganzes färben sich die Stücke in den Farben der Kinder; falsch -> Bild
+            "So sähe a/b aus". 3 Ganze ungeschnitten: erst Stückzahl eingeben (Vielfaches von p = Hinweis), dann Bruch.
+            Stufe 3 ohne Herzwaffel und Schokotafel (deren Form verrät die Stückzahl).
+     quot   1 Zahlenkarten. 2 Lücke (☐ : d oder n : ☐), rev mit Karten, Nenner bis 15. 3 Eingabe, Text in 4 Varianten
+            (tpl), Nenner bis 20; erweiterte Brüche gelten als richtig.
+     red    1 Karten, k = 2-3, ungekürzt = Hinweis. 2 drei Schritte: ungekürzt legen, Kürzungszahl antippen (Teiler davon
+            = Hinweis), gekürzt legen; k bis 5. 3 Eingabe, k bis 8, Nenner ungekürzt bis 40, redHint.
+     negq   1 nur ein Minus, ohne Kürzen, antippen. 2 alle Vorzeichenmuster, teils mit Kürzen, antippen.
+            3 Eingabe mit Minus-Taste, immer mit Kürzen (Platz 2 mit Beträgen 13-24); Minus oben oder unten gilt,
+            Minus oben und unten = Hinweis "ergibt Plus".
+     negrev (nur Stufe 2) drei von sechs Divisionsaufgaben antippen, die den Bruch ergeben, auch ungekürzte wie (−6) : 8.
+     pairs  1 drei Töpfe + eine Tafel, die nirgends passt. 2 vier Töpfe, Brüche und Divisionen gemischt, mit Vorzeichen;
+            zwei Töpfe unterscheiden sich nur im Vorzeichen. 3 gekürzte Brüche in den Töpfen, ungekürzte Divisionen,
+            in zwei Töpfe gehören je zwei Karten.
+     situ   1 Bild + Text, Tafel ziehen. 2 nur Text in 4 Formulierungen. 3 Eingabe; "extra" mit überflüssiger Zahl x
+            (Kinder insgesamt, Preis, Kiste), "back" rückwärts: Anteil und Kinderzahl gegeben, Zahl der Ganzen gesucht.
+     streit 1 nur T1, T2, F1, F2. 2 alle sechs Behauptungen. 3 danach "Begründe": drei Begründungen (REASON), eine stimmt.
+            Behauptungen in CLAIM: T1 "1/p von allen m zusammen", T2 "m/p eines Ganzen", T3 "m Stücke zu je 1/p"
+            (stimmen); F1 "1/p eines Ganzen", F2 "p/m eines Ganzen", F3 "m/p von allen zusammen" (stimmen nicht).
+            Das ist der Kern der Stunde: beide Sichtweisen des Teilens (Kommutativität 3·1/4 = 1/4·3).
+     sortq  1 vier Karten, zwei Regale. 2 sechs Karten, drei Regale (<1, =1, >1), knappe Fälle. 3 drei Lücken füllen
+            (z. B. 7 : ☐ soll weniger als ein Ganzes ergeben); mehrere Lösungen richtig.
+   Bedienung: Ziehen ODER erst Teil antippen, dann Ziel antippen; Knöpfe mit data-act. Allgemein: fld (Feld wählen),
+   key (Ziffer), chk (ruft T.check(t, Werte)); sonst wird T[data-act](t, el) aufgerufen (pick, kz, tog, reason).
+   Neuer Typ: TYPES[name] = { q(t), tip(t), render(t), drop und/oder Knopf-Methoden, optional tap, check, quick }.
+   Im Typ: solved(html) bei gelöst, wrong(html, el, muster) bei Fehler (kostet ein Leben; muster = sign | swap | red
+   für den Code), hint(titel, html) ohne Lebensverlust, redHint(t, html) für Stufe 3, say() für Zwischenschritte.
+
+   ZAHLENRAUM (POOL_SIZE in der Konsole zeigt die Größen je Stufe)
+     share/situ/streit: Stufe 1 m Ganze für p Esser mit 2 <= m < p <= 8, m <= 5, teilerfremd; Stufe 2/3 p <= 10, m <= 6.
+     Ergebnisse sonst immer kleiner als 1; gemischte Zahlen kommen erst in Std. 6.
+
+   LEBEN, TIPPS, STERNE, ENDGEGNER
+     Leben/Tipps je Stufe (STUFEN). 0 Leben -> Stufe beginnt von vorn mit neuen Aufgaben (Fehler/Tipps zählen weiter).
+     Sterne: Fehlversuche + Tipps <= 3 -> 3, <= 8 -> 2, sonst 1. Übrige Tipps werden beim Endgegner zu Schilden.
+     Endgegner: need Geschosse abwehren. Aufgaben aus quick(t) der Typen quot, red, negq, situ, sortq der jeweiligen Stufe.
+     quick liefert {q, fig?, opts:[[html, hinweis, muster?]], keep?, w?}; die Option mit leerem Hinweis ist richtig.
+     Zeit = secs[typ] · speed[gelöst] · time · (1 + ease · verlorene Versuche, höchstens easeMax-mal).
+     Stufe 3: Ein Geschoss (zufällig der 2. bis vorletzte) ist eine Eingabeaufgabe (red oder negq) mit inSecs Sekunden;
+     nicht vollständig gekürzt zählt dort sofort als Fehler.
+     Lehrermodus: Strg+Umschalt+L oder 5x schnell auf den Titel tippen -> alle Stufen offen, "Überspringen" bei jeder
+     Aufgabe und beim Endgegner, dort zusätzlich "Zeit: an/aus", auf der Startseite ist "Neuer Spieler" immer da.
+
+   MENSA-CODE (Ergebnissicherung, nur zur Auswertung)
+     Ab 2.2: M<w>★<s>-XXXX-XXXX-XXX. w = höchste geschaffte Stufe (0-3), s = Sterne des besten Durchlaufs dieser Stufe.
+     11 Zeichen aus ALPH (31 Zeichen ohne 0, 1, I, L, O) = 41 Bit Daten + 10 Bit Prüfsumme, affin verschlüsselt
+     (CK3 mod 31^11). Daten: w (2 Bit), Fortschritt in Stufe w+1 (4 Bit: gelöste Aufgaben, 13 = Endgegner erreicht),
+     je Stufe 1-3: Sterne des besten Durchlaufs (2), Versuche (3, 7 = 7 oder mehr), Fehlerklasse (3: Fehler pro Versuch,
+     Klassen CLSN 0 / unter 1 / 1-2 / 2-4 / 4-6 / 6-9 / 9-13 / über 13), Aufgabentypen mit Fehlern (8 Bit, TBIT),
+     Fehlermuster Vorzeichen/vertauscht/nicht gekürzt (3 Bit, PBIT). Typen, Muster und Statistik sammeln sich über
+     alle Durchläufe auf dem Gerät. decodeAny liest auch die alten 7-stelligen Codes (2.0/2.1). Der Code-Block ist in
+     Mensa_Codes_auswerten.html identisch; wer das Format ändert, muss beide Dateien ändern.
+
+   STORY
+     Der "Maskierte Magier" hat das Wildermuth-Gymnasium verhext (Maske, spitzer Hut, viel zu langer Umhang,
+     Turnschuhspitzen darunter). Hier: Die Mensa gibt nur Essen an alle, die gerecht teilen; hungrige Fünftklässler;
+     der Snackomat 5000 steht unter dem Zauber. Stufe 2 und 3 haben eigene Einleitungen (Mittwoch, Freitag).
+     AUFLÖSUNG (erst am Ende von Level 5 im Hauptspiel, nie vorher verraten): Unter der Maske steckt ein Igel in
+     Kapuzenpulli und Chucks, der in der Hecke am Haupteingang wohnt, ein frustrierter Mathelehrer (erfundene Figur).
+     Ton: kurz, großspurig, manchmal rutscht der Lehrerton heraus; keine Drohungen.
+     Hinweise in diesem Level: Rascheln wie in trockenem Laub, winzige Turnschuhabdrücke (Küche, Speisekammer),
+     fehlende Dose Katzenfutter am Kiosk, "Schnüff", "höchstens eine Drei minus", "Das üben wir noch einmal",
+     "Ich weiß, wie sich das anfühlt" (wenig Vorrat), Laubhaufen in der Speisekammer, Spur zur Hecke (Outro).
+     Outro kündigt Level 4 an: "in der Sporthalle steht alles auf einer Linie" (Zahlengerade).
+
+   TESTEN (so wurden 2.0 bis 2.2 geprüft)
+     Playwright (Chromium) mit page.evaluate: je Stufe Level starten, je Platz arrive() aufrufen, die Aufgabe über die
+     Methoden des Typs lösen (mit Fehlversuchen und Hinweisen), Fenster schließen, prüfen, dass G.i weiterzählt;
+     dann Endgegner (auch die Eingabeaufgabe) bis zum Endbildschirm; Code mit der Auswerte-Datei entschlüsseln.
+     Bildschirmfotos bei 820 px und 400 px Breite, Kontrolle auf waagrechten Überlauf. Keine Konsolenfehler.
+     2.2 zusätzlich: Code -> decodeAny -> restoreFrom -> Code ergibt denselben Code; Tippfehler werden erkannt;
+     alter Code lädt; Neuer Spieler / Spielstand laden über die Knöpfe.
+
+   ZURÜCK INS HAUPTSPIEL ÜBERNEHMEN (falls gewünscht)
+     Im Hauptspiel "Wildermuth Bruchzauber" 0.2 ist Level 3 noch die alte Burgküche. Zum Übernehmen müssten dort
+     auch die Stufen, das Rückmeldefenster und das Ziffernfeld übernommen werden (größerer Umbau). Der Mensa-Code
+     ist unabhängig vom Spielstand-Code des Hauptspiels.
+
+   IDEEN FÜR SPÄTER (nicht umgesetzt)
+     - quick() für streit (längerer Text, eigene Zeit in secs nötig).
+     - Ergebnisse größer als 1 und gemischte Schreibweise, sobald Std. 6 dran war (z. B. als Stufe 4).
+   ===================================================================================================== */
+
+/* ============ HELFER ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const range=n=>[...Array(n).keys()];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pickOne=a=>a[Math.random()*a.length|0];
+const rnd=(a,b)=>a+(Math.random()*(b-a+1)|0);                              // ganze Zufallszahl von a bis b
+const paras=a=>a.map(p=>p[0]==='~'?`<p class="voice">${p.slice(1)}</p>`:`<p>${p}</p>`).join('');
+const fr=(n,d)=>`<span class="fr"><b>${n}</b><b>${d}</b></span>`;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const starsFor=p=>p<=3?3:p<=8?2:1;
+const stars=n=>`<span class="stars" aria-label="${n} von 3 Sternen">${'★'.repeat(n)}<i>${'★'.repeat(3-n)}</i></span>`;
+const sn=x=>x<0?`(−${-x})`:`${x}`;                                       // Zahl in einer Divisionsaufgabe
+const dv=(a,b)=>`<span class="div">${sn(a)} : ${sn(b)}</span>`;
+const sfr=(s,n,d)=>`<span class="sfr">${s<0?'<span class="sgn">−</span>':''}${fr(n,d)}</span>`;   // Bruch mit Vorzeichen davor
+const mz=x=>x<0?'−'+(-x):''+x;                                           // Zahl mit echtem Minuszeichen
+const frv=(a,b)=>fr(mz(a),mz(b));                                         // Bruch, wie er eingegeben wurde
+const WORDS=['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn'];
+const f1=x=>x.toFixed(1);
+
+/* ============ STUFEN ============ */
+/* time = Faktor auf die Endgegner-Zeit, ease = Zeitzuschlag pro verlorenem Endgegner-Versuch, need = Geschosse */
+const STUFEN=[
+  {n:1,name:'Kochlehrling',lives:5,tips:5,time:1,ease:.15,need:5,info:'5 Leben, 5 Tipps. Du ziehst Teile an ihren Platz und tippst Antworten an.'},
+  {n:2,name:'Küchenchef',lives:5,tips:4,time:.9,ease:.10,need:5,info:'5 Leben, 4 Tipps. Erst denken, dann sehen. Größere Zahlen und neue Aufgaben.'},
+  {n:3,name:'Sternekoch',lives:4,tips:3,time:.8,ease:.05,need:6,info:'4 Leben, 3 Tipps. Du gibst die Brüche selbst ein.'}];
+
+/* Essen: [Plural, Genitiv Singular, Form, nur für diesen Nenner]. Die Herzwaffel besteht aus 5 Herzen, die Mini-Schokotafel aus 4 Rippchen. */
+const FOOD={pz:['Pizzen','einer Pizza','circle'],ku:['Kuchen','eines Kuchens','circle'],pf:['Pfannkuchen','eines Pfannkuchens','circle'],
+            wa:['Herzwaffeln','einer Herzwaffel','heart',5],
+            sr:['Schokoriegel','eines Schokoriegels','bar'],bg:['Baguettes','eines Baguettes','bar'],st:['Mini-Schokotafeln','einer Mini-Schokotafel','bar',4]};
+const ROUND=['pz','ku','pf','wa'],LONG=['sr','bg','st'],CUTFREE=['wa','st'];   // CUTFREE: Die Form gibt die Stücke schon vor
+/* Dativ für die Streit-Sätze: „von einer Pizza“, „von allen 3 Pizzen zusammen“ */
+const DAT={pz:['einer Pizza','Pizzen'],ku:['einem Kuchen','Kuchen'],pf:['einem Pfannkuchen','Pfannkuchen'],wa:['einer Herzwaffel','Herzwaffeln'],
+           sr:['einem Schokoriegel','Schokoriegeln'],bg:['einem Baguette','Baguettes'],st:['einer Mini-Schokotafel','Mini-Schokotafeln']};
+const vonEins=w=>`von ${DAT[w][0]}`;
+const vonAllen=(m,w)=>`von ${m===2?'beiden':'allen '+m} ${DAT[w][1]} zusammen`;
+const alleNom=(m,w)=>`${m===2?'Beide':'Alle '+m} ${FOOD[w][0]}`;
+const fits=(w,p)=>!FOOD[w][3]||FOOD[w][3]===p;
+const TONE={pz:'#f4b63f',ku:'#8a5232',pf:'#f1c86a',wa:'#e3a94f',sr:'#5c3420',bg:'#d99a4e',st:'#7a4528'};   // Farbe eines Stücks
+const KIDC=['#d9264a','#2a6fe8','#12a064','#f08a00','#6a3fb5','#0e9aa7','#c2185b','#7cb342','#8d6e63','#455a64'];   // je Kind eine Farbe
+const NAMES=['Emil','Hanna','Aylin','Finn','Zoe','Malte','Sophie','Jakob','Nele','Deniz','Paula','Tim','Leyla','Ole'];
+
+/* ============ POOLS (aus Regeln erzeugt, je Aufgabenplatz eine Liste pro Stufe) ============ */
+const pairsUpTo=(P,M)=>{const o=[];for(let p=3;p<=P;p++)for(let m=2;m<p&&m<=M;m++)if(gcd(m,p)===1)o.push([m,p]);return o};
+const properUpTo=D=>{const o=[];for(let d=2;d<=D;d++)for(let n=1;n<d;n++)if(gcd(n,d)===1)o.push([n,d]);return o};
+const PAIRS=pairsUpTo(8,5),PAIRS2=pairsUpTo(10,6);           // m Ganze für p Esser, teilerfremd
+const PROPER=properUpTo(12);
+const meals=(P,W)=>P.flatMap(([m,p])=>W.filter(w=>fits(w,p)).map(w=>({m,p,w})));
+const noCut=W=>W.filter(w=>!CUTFREE.includes(w));
+const redPool=(D,K,MAX)=>{const o=[];for(let d=2;d<=D;d++)for(let n=1;n<d;n++)if(gcd(n,d)===1)for(let k=2;k<=K;k++)if(d*k<=MAX)o.push({n,d,k});return o};
+const N1=[],N2=[],N3=[];      // negative Divisionen: N1 teilerfremd, N2 mit Kürzen (|b| <= 12), N3 mit Kürzen und größeren Zahlen
+for(let b=3;b<=24;b++)for(let a=2;a<b;a++)for(const [sa,sb] of [[-1,1],[1,-1],[-1,-1]]){
+  const g=gcd(a,b),v={a:sa*a,b:sb*b};
+  if(b<=12){if(g===1)N1.push(v);else if(b/g<=6)N2.push(v)}
+  else if(g>1&&b/g<=8)N3.push(v);
+}
+const oneMinus=v=>!(v.a<0&&v.b<0);
+const POOLS={
+  shareRound:[meals(PAIRS,ROUND),meals(PAIRS2,ROUND),meals(PAIRS2,noCut(ROUND))],
+  shareLong:[meals(PAIRS,LONG),meals(PAIRS2,LONG),meals(PAIRS2,noCut(LONG))],
+  quot:[PROPER.map(([n,d])=>({n,d})),properUpTo(15).map(([n,d])=>({n,d,gap:Math.random()<.5?'n':'d'})),properUpTo(20).map(([n,d])=>({n,d,tpl:rnd(0,3)}))],
+  quotRev:[PROPER.map(([n,d])=>({n,d})),properUpTo(15).map(([n,d])=>({n,d})),properUpTo(20).map(([n,d])=>({n,d}))],
+  red:[redPool(6,3,18),redPool(6,5,30),redPool(8,8,40)],
+  negA:[N1.filter(oneMinus),[...N1,...N2],N2],
+  negB:[N1.filter(oneMinus),
+    /* Stufe 2: Umkehrung. Drei Divisionsaufgaben ergeben den Bruch, drei nicht (Vorzeichen falsch, vertauscht) */
+    range(80).map(()=>{
+      const [n,d]=pickOne(properUpTo(7).filter(([n])=>n>1)),s=Math.random()<.7?-1:1,k=rnd(2,3);
+      const ok=s<0?[[-n,d],[n,-d],[-k*n,k*d],[k*n,-k*d]]:[[n,d],[-n,-d],[k*n,k*d],[-k*n,-k*d]];
+      const bad=s<0?[[-n,-d],[n,d],[-d,n],[-k*n,-k*d],[d,-n]]:[[-n,d],[n,-d],[d,n],[-k*n,k*d],[-d,-n]];
+      return {n,d,s,cards:shuffle([...shuffle(ok).slice(0,3).map(c=>[...c,1]),...shuffle(bad).slice(0,3).map(c=>[...c,0])])};
+    }),
+    N3],
+  pairs:[
+    range(60).map(()=>{const s=shuffle(PROPER.filter(([n,d])=>d<=9&&n>1)).slice(0,3);return {pairs:s,extra:[[s[0][1],s[0][0]]]}}),
+    /* Stufe 2: vier Töpfe, gemischt Bruch und Division, mit Vorzeichen; zwei Töpfe unterscheiden sich nur im Vorzeichen */
+    range(60).map(()=>{
+      const v=shuffle(properUpTo(9).filter(([n])=>n>1)).slice(0,3),tw=v[0];
+      const ent=([n,d],s)=>({n,d,s,div:s<0?(Math.random()<.5?[-n,d]:[n,-d]):[n,d],potDiv:Math.random()<.5});
+      const list=shuffle([ent(tw,-1),ent(tw,1),ent(v[1],Math.random()<.5?-1:1),ent(v[2],Math.random()<.5?-1:1)]);
+      const ex=list.findIndex(e=>e.n!==tw[0]||e.d!==tw[1]),big=list.findIndex((e,i)=>i!==ex&&(e.n!==tw[0]||e.d!==tw[1])),k=rnd(2,3);
+      list[big].div=list[big].div.map(x=>x*k);      // diese Divisionsaufgabe muss noch gekürzt werden
+      return {list,ex};
+    }),
+    /* Stufe 3: gekürzte Brüche in den Töpfen, ungekürzte Divisionsaufgaben auf den Karten */
+    range(60).map(()=>{
+      const pots=shuffle(properUpTo(6)).slice(0,3),cards=[];
+      pots.forEach(([n,d],i)=>shuffle([1,2,3,4,5]).slice(0,i<2?2:1).forEach(k=>cards.push([k*n,k*d,i])));
+      const k=rnd(2,4);return {pots,cards,extra:[k*pots[0][1],k*pots[0][0]]};
+    })],
+  situ:[meals(PAIRS,Object.keys(FOOD)),meals(PAIRS2,Object.keys(FOOD)).map(v=>({...v,tpl:rnd(0,3)})),
+    meals(PAIRS2,Object.keys(FOOD)).map(v=>{
+      const tpl=rnd(0,2);let x;
+      do x=tpl===0?rnd(v.p+2,v.p+9):tpl===1?rnd(4,15):rnd(v.m+2,v.m+8);while(x===v.m||x===v.p||x===v.m*v.p);
+      return {...v,kind:Math.random()<.65?'extra':'back',tpl,x};
+    })],
+  streit:[],
+  sortq:[
+    range(60).map(()=>{
+      const lo=()=>{const b=2+(Math.random()*8|0);return [1+(Math.random()*(b-1)|0),b]};
+      const a1=lo();let a2;do a2=lo();while(a2[0]===a1[0]&&a2[1]===a1[1]);
+      const e=1+(Math.random()*9|0),hi=lo().reverse();
+      return {cards:[a1,[...a2,1],[e,e,Math.random()<.5?1:0],[...hi,Math.random()<.5?1:0]]};
+    }),
+    /* Stufe 2: sechs Kisten, drei Regale, knappe Fälle wie 7 : 8 und 9 : 8 */
+    range(60).map(()=>{
+      const b1=rnd(4,12),b2=rnd(3,11),e=rnd(2,12),b3=rnd(4,12),b4=rnd(2,6);
+      const c=[[b1-1,b1],[b2+1,b2],[e,e],[rnd(1,b3-2),b3],[rnd(b4+2,12),b4]],seen=new Set(c.map(x=>x.join()));
+      let x;do{const b=rnd(2,12);x=[rnd(1,12),b]}while(seen.has(x.join()));c.push(x);
+      return {cards:c.map(([a,b])=>[a,b,Math.random()<.5?1:0])};
+    }),
+    /* Stufe 3: drei Lücken, die passend gefüllt werden müssen */
+    range(60).map(()=>({rows:shuffle(['A','B','C','D','E']).slice(0,3).map(k=>({k,a:rnd(3,9)}))}))]
+};
+/* Streit: zwei Behauptungen über m Ganze für p Kinder. T = stimmt, F = stimmt nicht. Stufe 1 nur die deutlichen. */
+const streitPool=(P,C)=>P.flatMap(([m,p])=>Object.keys(FOOD).filter(w=>fits(w,p)).map(w=>{const [x,y]=shuffle(C),[A,B]=shuffle(NAMES);return {m,p,w,A,B,ca:x,cb:y}}));
+POOLS.streit=[streitPool(PAIRS,['T1','T2','F1','F2']),streitPool(PAIRS2,['T1','T2','T3','F1','F2','F3']),streitPool(PAIRS2,['T1','T2','T3','F1','F2','F3'])];
+const POOL_SIZE=Object.fromEntries(Object.entries(POOLS).map(([k,v])=>[k,v.map(x=>x.length)]));   // zur Kontrolle in der Konsole
+
+/* ============ DAS LEVEL ============ */
+const LEVEL={place:'Die Mensa',topic:'Brüche als Quotienten',startBtn:'Zur Essensausgabe',endTitle:'Die Mensa ist entzaubert',boss:'snack',
+  intro:[
+   ['Dienstag, kurz vor der Mittagspause. Seit der Maskierte Magier das Wildermuth-Gymnasium verhext hat, ist kein Tag mehr normal. Heute hat es die Mensa erwischt.',
+    'An den Tischen sitzen hungrige Fünftklässler vor leeren Tellern. Der Snackomat 5000 an der Wand blinkt lila. Auf dem Bildschirm über der Essensausgabe erscheint eine Gestalt mit Maske, spitzem Hut und viel zu langem Umhang.',
+    '~Heute bekommt nur etwas zu essen, wer gerecht teilen kann. Und wer teilt, schreibt es als Bruch. Ohne Ausnahme!',
+    'Hilf den Fünftklässlern. Erst wenn alle satt sind, kommst du an den Snackomat heran. In ihm steckt der Zauber.'],
+   ['Mittwoch. Die Mensa läuft wieder, aber nicht lange. Über der Essensausgabe flackert der Bildschirm lila, und der Snackomat 5000 brummt.',
+    '~Ein Kochlehrling also. Heute gibt es Nachschlag, und der ist schwerer verdaulich. Mal sehen, ob du erst denkst und dann schaust!',
+    'Diesmal legst du die Brüche zuerst. Erst danach siehst du, wie verteilt wird. Die Zahlen werden größer, und es gibt neue Aufgaben.'],
+   ['Freitag, Mittagspause. Der Snackomat 5000 summt lauter als je zuvor, und in der Küche duftet es nach Waffeln.',
+    '~Küchenchef? Pah. Ein echter Sternekoch braucht keine Zahlenkarten. Keine Vorgaben, keine Hilfen. Nur du und die Brüche.',
+    'Diesmal gibst du die Brüche selbst ein: Tippe ein Feld an und dann die Ziffern. Wenn ein Ergebnis noch nicht vollständig gekürzt ist, darfst du einmal verbessern.']],
+  outro:['Der Snackomat 5000 rattert, und seine Lampen springen auf Grün. Aus dem Ausgabefach fällt ein letzter Zettel: „Guten Appetit. Bitte gerecht teilen.“',
+         'Endlich essen alle. Nur in der Speisekammer liegt ein kleiner Haufen Laub, und eine Spur winziger Turnschuhabdrücke führt zur Hintertür hinaus, direkt zur Hecke am Haupteingang.',
+         '~Nicht schlecht. Aber in der Sporthalle steht alles auf einer Linie. Wir sehen uns!'],
+  groups:[
+   /* Ort 1: mehrere Ganze gerecht verteilen und den Anteil pro Kind als Bruch angeben */
+   {name:'Essensausgabe',bg:'ausgabe',
+    story:'An der Essensausgabe stapeln sich die Bleche. Niemand traut sich, das Essen auszuteilen.',
+    voice:'Jedem gleich viel. Nicht ungefähr. Genau gleich!',
+    done:'Die Schlange an der Essensausgabe löst sich auf. Alle kauen.',
+    tasks:[{type:'share',pool:POOLS.shareRound},{type:'share',pool:POOLS.shareLong}]},
+   /* Ort 2: Division als Bruch, Bruch als Division, Division als gekürzter Bruch */
+   {name:'Tische',bg:'tische',
+    story:'An einem Tisch führt eine Fünftklässlerin Buch darüber, wer was bekommen hat. Das Geteilt-Zeichen hat jemand in ihrem Heft durchgestrichen.',
+    voice:'Ein Strich statt zwei Punkten. Und gekürzt wird bis zum Schluss, sonst gibt es höchstens eine Drei minus.',
+    done:'Das Heft klappt zu. Unter einem Tisch raschelt es, als liefe jemand durch trockenes Laub.',
+    tasks:[{type:'quot',pool:POOLS.quot},{type:'quot',rev:1,pool:POOLS.quotRev},{type:'red',pool:POOLS.red}]},
+   /* Ort 3: Division mit negativen Zahlen (Schulden), dann zuordnen. In Stufe 2 ist der zweite Platz die Umkehrung (negrev). */
+   {name:'Küche',bg:'kueche',
+    story:'In der Küche hängt die Kasse der Mensa. Sie steht im Minus: Die Schulden für Mehl, Milch und Äpfel sollen gerecht aufgeteilt werden.',
+    voice:'Minus durch Plus, Plus durch Minus, Minus durch Minus. Wer die Regeln kennt, ist schnell fertig. Schnüff.',
+    done:'Die Kasse piept zufrieden. Auf den Fliesen sind winzige Abdrücke von Turnschuhen zu sehen.',
+    tasks:[{type:'negq',pool:POOLS.negA},{type:lv=>lv===2?'negrev':'negq',pool:POOLS.negB},{type:'pairs',rev:1,pool:POOLS.pairs}]},
+   /* Ort 4: Situation -> Bruch, dann Streit (beide Sichtweisen des Teilens) */
+   {name:'Kiosk',bg:'kiosk',
+    story:'Am Kiosk wird gestritten. Jeder ist sich sicher, dass er recht hat.',
+    voice:'Streiten bringt nichts. Rechnen schon. Das üben wir noch einmal.',
+    done:'Der Streit am Kiosk ist beigelegt. Nur eine Dose Katzenfutter fehlt im Regal, und keiner weiß, wer sie gekauft hat.',
+    tasks:[{type:'situ',pool:POOLS.situ},{type:'streit',pool:POOLS.streit}]},
+   /* Ort 5: noch ein Streit, dann ohne Rechnen entscheiden, ob das Ergebnis kleiner als 1 ist */
+   {name:'Speisekammer',bg:'kammer',
+    story:'In der Speisekammer stehen Kisten mit Vorräten. Auf jeder Kiste klebt eine Aufgabe.',
+    voice:'Wenig Vorrat, viele Esser: Da bleibt für jeden weniger als ein Ganzes. Ich weiß, wie sich das anfühlt.',
+    done:'Hinter dem letzten Regal brummt etwas. Der Snackomat 5000 rollt heraus.',
+    tasks:[{type:'streit',pool:POOLS.streit},{type:'sortq',pool:POOLS.sortq}]}
+  ]};
+
+/* ENDGEGNER: Kurzaufgaben aus TYPES[typ].quick. secs = Sekunden bis zum Treffer (geschätzt), speed = Faktor nach
+   0, 1, 2 … gelösten Aufgaben. Dazu je Stufe: time (Faktor), ease (Zuschlag pro verlorenem Versuch, höchstens easeMax-mal), need.
+   In Stufe 3 ist ein Geschoss eine Eingabeaufgabe mit eigener Zeit inSecs. */
+const BOSSES={
+ snack:{name:'Snackomat 5000',bg:'tische',
+  secs:{quot:10,red:12,negq:12,situ:12,sortq:10},inSecs:24,
+  speed:[1,.95,.9,.85,.8,.8],easeMax:3,
+  intro:['Der Snackomat 5000 stellt sich dir in den Weg. Seine Lampen leuchten lila, und aus dem Ausgabefach schießen Pizzen, Kuchen und Schokoriegel. An jedem Geschoss klebt eine Aufgabe.',
+         '~Mein Zauber steckt in ihm. Wer an ihm vorbei will, muss schneller teilen, als er wirft!'],
+  lose:['Ein Pfannkuchen klebt dir an der Stirn. Der Snackomat spuckt zur Feier einen Schokoriegel aus und frisst ihn gleich wieder.',
+        '~Zu langsam! Das üben wir noch einmal. Von vorn!']}
+};
+
+/* ---- Speicher auf dem Gerät: geschaffte Stufen, beste Durchläufe, Fortschritt, Fehlerarten (für den Code) ---- */
+const KEY='wildermuth-mensa2';
+const store={
+  get(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')return s}catch(e){}return {}},
+  set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+function rec(f){if(!G||G.T||teacher)return;const s=store.get();f(s);store.set(s)}   // Lehrermodus wird nicht gespeichert
+const TBIT=['share','quot','red','negq','pairs','situ','streit','sortq'],PBIT=['sign','swap','red'];
+function mark(type,pat){rec(s=>{
+  const ti=TBIT.indexOf(type==='negrev'?'negq':type),pi=PBIT.indexOf(pat);
+  if(ti>=0)s.ty=(s.ty||0)|1<<ti;
+  if(pi>=0)s.pa=(s.pa||0)|1<<pi;
+})}
+function progress(i){rec(s=>{s.prog=s.prog||{};const p=s.prog[G.lv];if(!p||i>p.i)s.prog[G.lv]={i,e:G.errs,t:G.tips}})}
+
+/* ---- Mensa-Code (gleicher Block in Level3_Die_Mensa_2.2.html und Mensa_Codes_auswerten.html; wer ihn ändert, ändert beide) ----
+   Neu ab 2.2: M<geschaffte Stufe>★<Sterne>-XXXX-XXXX-XXX (11 Zeichen, 41 Bit Daten + 10 Bit Prüfsumme):
+     won (2) · prog = Fortschritt in der nächsten Stufe (4; 13 = Endgegner erreicht) ·
+     je Stufe 1-3: Sterne des besten Durchlaufs (2; 0 = nicht geschafft), Versuche (3; 7 = 7 oder mehr),
+                   Fehlerklasse = Fehler pro Versuch in Klassen CLSN (3) · Aufgabentypen mit Fehlern (8) · Fehlermuster (3).
+   Alt (2.0/2.1): M<won>★<Sterne>-XXXXXXX (7 Zeichen, 25 Bit + 9 Bit Prüfsumme): won, prog, Fehler (5) und Tipps (3)
+     des besten Durchlaufs, Aufgabentypen (8), Fehlermuster (3). Wird weiter gelesen. */
+const ALPH='23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+const CK2={mod:31n**7n,mul:1234567891n,add:987654321n},CK3={mod:31n**11n,mul:1234567891234567n,add:98765432123456789n};
+const CLSN=['0','unter 1','1 bis 2','2 bis 4','4 bis 6','6 bis 9','9 bis 13','über 13'],CLSMID=[0,.5,1.5,3,5,7.5,11,16];
+const clsOf=(e,n)=>{if(!n||!e)return 0;const a=e/n;return a<1?1:a<=2?2:a<=4?3:a<=6?4:a<=9?5:a<=13?6:7};
+const starsOf=p=>p<=3?3:p<=8?2:1;
+function chk9(P){let h=P^0x5bd1e995;h=Math.imul(h^(h>>>15),0x2c1b3c6d);h=Math.imul(h^(h>>>12),0x297a2d39);return (h^(h>>>15))&511}
+function chk10(P){const lo=Number(P&0xffffffffn)|0,hi=Number(P>>32n)|0;let h=lo^Math.imul(hi,0x9e3779b1)^0x5bd1e995;
+  h=Math.imul(h^(h>>>15),0x2c1b3c6d);h=Math.imul(h^(h>>>12),0x297a2d39);return (h^(h>>>15))&1023}
+function modInv(a,m){let [r0,r1,s0,s1]=[a%m,m,1n,0n];while(r1){const q=r0/r1;[r0,r1]=[r1,r0-q*r1];[s0,s1]=[s1,s0-q*s1]}return ((s0%m)+m)%m}
+const toChars=(X,n)=>{let c='';for(let i=0;i<n;i++){c=ALPH[Number(X%31n)]+c;X/=31n}return c};
+/* d = {won, prog, stars:[3], n:[3], cls:[3], ty, pa} -> Code */
+function encode3(d){
+  let P=BigInt(d.won)|BigInt(d.prog)<<2n;
+  for(let i=0;i<3;i++)P|=BigInt(d.stars[i]|Math.min(d.n[i],7)<<2|d.cls[i]<<5)<<BigInt(6+8*i);
+  P|=BigInt(d.ty)<<30n|BigInt(d.pa)<<38n;
+  const c=toChars(((P*1024n+BigInt(chk10(P)))*CK3.mul+CK3.add)%CK3.mod,11);
+  return `M${d.won}★${d.won?d.stars[d.won-1]:0}-${c.slice(0,4)}-${c.slice(4,8)}-${c.slice(8)}`;
+}
+/* Code (alt oder neu, mit oder ohne Vorspann, Leerzeichen, Striche, ★ oder *, klein oder groß) -> Daten oder {err} */
+function decodeAny(raw){
+  const s=String(raw).toUpperCase().replace(/[\s★*\-–]/g,'');
+  const m=s.match(/^(?:M([0-3])([0-3]))?([0-9A-Z]{11}|[0-9A-Z]{7})$/);
+  if(!m)return {err:'Format nicht erkannt'};
+  const body=m[3],bad=[...body].filter(c=>!ALPH.includes(c));
+  if(bad.length)return {err:`Zeichen ${[...new Set(bad)].join(', ')} gibt es im Code nicht`};
+  let X=0n;for(const c of body)X=X*31n+BigInt(ALPH.indexOf(c));
+  const neu=body.length===11,K=neu?CK3:CK2,V=(((X-K.add)%K.mod+K.mod)%K.mod)*modInv(K.mul,K.mod)%K.mod;
+  let d;
+  if(neu){
+    if(V>=1n<<51n)return {err:'Prüfsumme stimmt nicht'};
+    const P=V/1024n;if(chk10(P)!==Number(V%1024n))return {err:'Prüfsumme stimmt nicht'};
+    const b=(o,w)=>Number(P>>BigInt(o)&((1n<<BigInt(w))-1n));
+    d={v:3,won:b(0,2),prog:b(2,4),stars:[0,1,2].map(i=>b(6+8*i,2)),n:[0,1,2].map(i=>b(8+8*i,3)),cls:[0,1,2].map(i=>b(11+8*i,3)),ty:b(30,8),pa:b(38,3)};
+    d.star=d.won?d.stars[d.won-1]:0;
+    d.code=`M${d.won}★${d.star}-${body.slice(0,4)}-${body.slice(4,8)}-${body.slice(8)}`;
+  }else{
+    if(V>=1n<<34n)return {err:'Prüfsumme stimmt nicht'};
+    const P=Number(V/512n);if(chk9(P)!==Number(V%512n))return {err:'Prüfsumme stimmt nicht'};
+    d={v:2,won:P&3,prog:P>>2&15,e:P>>6&31,t:P>>11&7,ty:P>>14&255,pa:P>>22&7};
+    d.star=d.won?starsOf(d.e+d.t):0;d.code=`M${d.won}★${d.star}-${body}`;
+  }
+  if(m[1]!==undefined&&(d.won!==+m[1]||d.star!==+m[2]))return {err:'Vorderer Teil passt nicht zum Rest'};
+  return d;
+}
+/* Spielstand -> Code-Daten. st[Stufe] = {n: Versuche, e: Fehler (Aufgaben und Endgegner) über alle Versuche} */
+function codeData(s){
+  const won=s.won||0,pr=(s.prog||{})[Math.min(won+1,3)]||{},b=s.best||{},st=s.st||{};
+  return {won,prog:won<3?Math.min(pr.i||0,15):0,ty:s.ty||0,pa:s.pa||0,
+    stars:[1,2,3].map(k=>b[k]?starsOf(b[k].e+b[k].t):0),n:[1,2,3].map(k=>(st[k]||{}).n||0),cls:[1,2,3].map(k=>clsOf((st[k]||{}).e,(st[k]||{}).n))};
+}
+const makeCode=s=>encode3(codeData(s));
+/* Code -> Spielstand (Spielstand laden). Was der Code nur grob enthält (Fehler), wird passend zur Klasse eingesetzt. */
+function restoreFrom(d){
+  const s={won:d.won,ty:d.ty,pa:d.pa,best:{},prog:{},st:{},loaded:1};
+  if(d.won<3&&d.prog)s.prog[d.won+1]={i:d.prog,e:0,t:0};
+  if(d.v===3)[0,1,2].forEach(i=>{if(d.stars[i])s.best[i+1]={e:[0,9,4,0][d.stars[i]],t:0};if(d.n[i])s.st[i+1]={n:d.n[i],e:d.n[i]*CLSMID[d.cls[i]]}});
+  else for(let k=1;k<=d.won;k++)s.best[k]=k===d.won?{e:d.e,t:d.t}:{e:4,t:0};      // alte Codes: frühere Stufen ohne Angabe -> 2 Sterne
+  return s;
+}
+function stat(lv,f){rec(s=>{s.st=s.st||{};const x=s.st[lv]=s.st[lv]||{n:0,e:0};f(x)})}
+
+/* ============ BILDER ============ */
+/* Lebensmittel: Kreis (Pizza, Kuchen, Pfannkuchen), Herzwaffel (5 Herzen), Riegel (Schokoriegel, Baguette, Mini-Schokotafel).
+   fill = Anzahl gefärbter Stücke (in der Farbe des Essens) oder Liste mit einer Farbe je Stück (null = leer).
+   Belag und Muster gibt es nur auf Stücken in der Farbe des Essens. */
+const pt=(a,r)=>`${f1(100+r*Math.cos(a))} ${f1(100+r*Math.sin(a))}`;
+function spots(a0,a1,rs,gap){      // Punkte gleichmäßig im Kreisausschnitt, auf dem ersten Radius mindestens einer
+  const o=[];rs.forEach((r,k)=>{const n=Math.max(k?0:1,Math.floor((a1-a0)*r/gap));for(let i=0;i<n;i++){const a=a0+(i+.5)*(a1-a0)/n;o.push([100+r*Math.cos(a),100+r*Math.sin(a)])}});return o;
+}
+const DECO={
+  pz:(a0,a1,full)=>`<path d="${full?'M100 16A84 84 0 1 1 99.9 16':`M${pt(a0+.07,84)}A84 84 0 0 1 ${pt(a1-.07,84)}`}" fill="none" stroke="#c4802f" stroke-width="11" stroke-linecap="round"/>`
+    +spots(a0,a1,[56,30],40).map(([x,y])=>`<circle cx="${f1(x)}" cy="${f1(y)}" r="8" fill="#b8322a"/><circle cx="${f1(x-2.5)}" cy="${f1(y-2.5)}" r="2.2" fill="#e0675d"/>`).join(''),
+  ku:(a0,a1)=>spots(a0,a1,[74],44).map(([x,y])=>`<circle cx="${f1(x)}" cy="${f1(y)}" r="8" fill="#fff6e8" stroke="#e2cbb0" stroke-width="2"/><circle cx="${f1(x)}" cy="${f1(y-4)}" r="4" fill="#c8324a"/>`).join('')
+    +spots(a0,a1,[40],60).map(([x,y])=>`<circle cx="${f1(x)}" cy="${f1(y)}" r="3" fill="#b07a52"/>`).join(''),
+  pf:(a0,a1)=>spots(a0,a1,[64,36],34).map(([x,y],i)=>`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${i%2?5:7}" ry="4" fill="#c47a2c" opacity=".5"/>`).join('')
+};
+function circFood(w,d,fl){
+  let s='',deco='';
+  for(let i=0;i<d;i++){
+    const c=fl[i],a0=i/d*2*Math.PI-Math.PI/2,a1=(i+1)/d*2*Math.PI-Math.PI/2;
+    s+=(d===1?'<circle cx="100" cy="100" r="92"':`<path d="M100 100L${pt(a0,92)}A92 92 0 0 1 ${pt(a1,92)}Z"`)+` class="cell"${c?` style="fill:${c}"`:''}/>`;
+    if(c===TONE[w]&&DECO[w])deco+=DECO[w](a0,a1,d===1);
+  }
+  return s+deco;
+}
+/* Herz mit der Spitze im Ursprung, die Rundungen zeigen nach außen. Fünf davon ergeben die runde Waffel.
+   Die Seiten öffnen sich mit weniger als 36 Grad, damit sich die Herzen nicht überlappen. */
+const HEARTP=[[0,0],'L',[-35,-50],'C',[-50,-72],[-40,-93],[-20,-93],'C',[-8,-93],[0,-84],[0,-77],'C',[0,-84],[8,-93],[20,-93],'C',[40,-93],[50,-72],[35,-50],'L',[0,0]];
+const HEART=(()=>{let d='M0 0';for(let i=1;i<HEARTP.length;){const c=HEARTP[i++];if(c==='L')d+=`L${HEARTP[i++].join(' ')}`;else{d+=`C${[HEARTP[i],HEARTP[i+1],HEARTP[i+2]].map(p=>p.join(' ')).join(' ')}`;i+=3}}return d+'Z'})();
+const DIMPLES=(()=>{      // Waffelmuster: Gitterpunkte, deren kleines Quadrat ganz im Herz liegt
+  const poly=[];let cur=[0,0];
+  for(let i=1;i<HEARTP.length;){const c=HEARTP[i++];
+    if(c==='L'){cur=HEARTP[i++];poly.push(cur)}
+    else{const [p1,p2,p3]=[HEARTP[i],HEARTP[i+1],HEARTP[i+2]],p0=cur;i+=3;
+      for(let k=1;k<=12;k++){const t=k/12,u=1-t;poly.push([0,1].map(j=>u*u*u*p0[j]+3*u*u*t*p1[j]+3*u*t*t*p2[j]+t*t*t*p3[j]))}cur=p3}}
+  const inside=(x,y)=>{let o=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)o=!o}return o};
+  const out=[];for(let y=-14;y>-92;y-=11)for(let x=-44;x<=44;x+=11)if([[-6,-6],[6,-6],[-6,6],[6,6]].every(([a,b])=>inside(x+a,y+b)))out.push([x,y]);return out;
+})();
+function heartFood(fl){
+  let s='';
+  for(let i=0;i<5;i++){
+    const c=fl[i];
+    s+=`<g transform="translate(100 102) rotate(${i*72})"><path class="cell" d="${HEART}"${c?` style="fill:${c}"`:''}/>`
+      +(c===TONE.wa?DIMPLES.map(([x,y])=>`<rect x="${x-3.5}" y="${y-3.5}" width="7" height="7" rx="1.5" fill="#b9772e" opacity=".6"/>`).join(''):'')+'</g>';
+  }
+  return s;
+}
+function barPath(x,w,rl,rr){      // Rechteck, für das Baguette mit abgerundetem linkem und/oder rechtem Ende
+  const y=4,h=52,r=Math.min(24,rl&&rr?w/2:w);
+  return `M${f1(x+(rl?r:0))} ${y}H${f1(x+w-(rr?r:0))}`+(rr?`A${f1(r)} ${h/2} 0 0 1 ${f1(x+w-r)} ${y+h}`:`V${y+h}`)
+    +`H${f1(x+(rl?r:0))}`+(rl?`A${f1(r)} ${h/2} 0 0 1 ${f1(x+r)} ${y}`:`V${y}`)+'Z';
+}
+const BARDECO={
+  sr:(x,w)=>w<16?'':`<rect x="${f1(x+5)}" y="11" width="${f1(w-10)}" height="38" rx="4" fill="#734228"/><path d="M${f1(x+8)} 22q${f1((w-16)/4)} -6 ${f1((w-16)/2)} 0t${f1((w-16)/2)} 0M${f1(x+8)} 36q${f1((w-16)/4)} -6 ${f1((w-16)/2)} 0t${f1((w-16)/2)} 0" stroke="#a0663f" stroke-width="2.5" fill="none"/>`,
+  st:(x,w)=>w<16?'':`<rect x="${f1(x+6)}" y="10" width="${f1(w-12)}" height="40" rx="5" fill="#8f5532"/><path d="M${f1(x+10)} 15h${f1(w-20)}" stroke="#a96a40" stroke-width="3" stroke-linecap="round"/>`,
+  bg:(x,w)=>w<16?'':`<path d="M${f1(x+w*.3)} 16L${f1(x+w*.7)} 44" stroke="#f2d39b" stroke-width="5" stroke-linecap="round"/>`
+};
+function barFood(w,d,fl){
+  const cw=200/d;let s='',deco='';
+  for(let i=0;i<d;i++){
+    const c=fl[i],x=4+i*cw,rl=w==='bg'&&i===0,rr=w==='bg'&&i===d-1;
+    s+=`<path class="cell" d="${barPath(x,cw,rl,rr)}"${c?` style="fill:${c}"`:''}/>`;
+    if(c===TONE[w])deco+=BARDECO[w](x,cw);
+  }
+  return s+deco;
+}
+function food(w,d,fill,size,fixed){
+  const fl=Array.isArray(fill)?fill:range(d).map(i=>i<(fill||0)?TONE[w]:null),kind=FOOD[w][2];
+  const st=fixed?`width:${size}px;max-width:none`:`max-width:${size||270}px`,lab=`aria-label="${FOOD[w][0]}, ${d===1?'ungeschnitten':d+' Stücke'}"`;
+  if(kind==='bar')return `<svg class="fig" viewBox="0 0 208 60" style="${st}" role="img" ${lab}>${barFood(w,d,fl)}</svg>`;
+  return `<svg class="fig" viewBox="0 0 200 200" style="${st}" role="img" ${lab}>${kind==='heart'&&d===5?heartFood(fl):circFood(w,d,fl)}</svg>`;
+}
+/* kleines Ganzes (Situationsaufgaben): ungeschnitten, nur Waffel und Schokotafel zeigen ihre Herzen und Rippchen */
+const wholeD=w=>w==='wa'?5:w==='st'?4:1;
+const whole=w=>food(w,wholeD(w),wholeD(w),FOOD[w][2]==='bar'?62:46,true);
+/* Fünftklässler: Kopf und Schultern, Haut, Haare und Pulli wechseln (sh = feste Pullifarbe) */
+const SKIN=['#f0c8a0','#c68a5e','#8d5a3b','#f5d6b8','#e0ac7e'],HAIR=['#3b2a1e','#b84a00','#1b1b1b','#d8a93b','#6b4a2e'],SHIRT=['#d9264a','#2a6fe8','#12a064','#f08a00','#6a3fb5'];
+const esser=(i,sh)=>`<svg viewBox="0 0 40 48" width="46" height="55" aria-hidden="true"><path d="M4 48v-8a16 12 0 0 1 32 0v8z" fill="${sh||SHIRT[i%5]}"/><circle cx="20" cy="20" r="12" fill="${SKIN[(i*3+1)%5]}"/><path d="M8 19a12 12 0 0 1 24 0q-6-6-12-3q-6-3-12 3z" fill="${HAIR[(i*2+3)%5]}"/><circle cx="16" cy="21" r="1.7" fill="#16302b"/><circle cx="24" cy="21" r="1.7" fill="#16302b"/><path d="M16 27q4 3 8 0" stroke="#16302b" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`;
+const six=a=>[...new Set(a)].filter(x=>x>0).slice(0,6);      // sechs verschiedene Zahlenkarten
+const numTiles=a=>shuffle([...new Set(a)].filter(x=>x>0)).map(x=>`<button class="drag tile" data-val="${x}">${x}</button>`).join('');
+
+/* ============ SZENEN (SVG 800 x 300, Boden bei y = 250, Tür bei x = 702-770, Markierungen zwischen 210 und 630) ============ */
+const GC=['#d9264a','#2a6fe8','#12a064','#f08a00'];
+const lines=(y,c,step=80)=>range(Math.ceil(800/step)).map(i=>`<path d="M${i*step+40} ${y}l-22 50" stroke="${c}" stroke-width="2"/>`).join('');
+/* Zauberer, Füße im Ursprung, etwa 80 hoch. Die Turnschuhspitzen unter dem Umhang sind ein Hinweis auf die Auflösung. */
+const WIZ=`<ellipse cx="-7" cy="-3" rx="7" ry="4" fill="#1b1b1b"/><ellipse cx="7" cy="-3" rx="7" ry="4" fill="#1b1b1b"/><circle cx="-12" cy="-3" r="2.4" fill="#fff"/><circle cx="12" cy="-3" r="2.4" fill="#fff"/>
+<path d="M-19 -5L-7 -48H7L19 -5Z" fill="#5b34a8"/><circle cx="-6" cy="-18" r="2" fill="#ffd95a"/><circle cx="5" cy="-28" r="1.6" fill="#ffd95a"/><circle cx="7" cy="-12" r="1.6" fill="#ffd95a"/>
+<ellipse cx="0" cy="-43" rx="11" ry="9" fill="#f4f1ff" stroke="#2b2140" stroke-width="1.5"/><circle cx="-4" cy="-44" r="2.1" fill="#2b2140"/><circle cx="4" cy="-44" r="2.1" fill="#2b2140"/>
+<path d="M-13 -50H13L2 -82Z" fill="#3d2380"/><ellipse cx="0" cy="-50" rx="17" ry="3.5" fill="#3d2380"/>`;
+/* Spielfigur, Füße im Ursprung. Die Beine (.la, .lb) werden beim Gehen gedreht. */
+const KID=`<rect class="la" x="-7" y="-26" width="7" height="26" rx="3" fill="#2f3e5c"/><rect class="lb" x="1" y="-26" width="7" height="26" rx="3" fill="#2f3e5c"/>
+<rect x="-20" y="-58" width="11" height="27" rx="4" fill="#2a6fe8"/><rect x="-12" y="-62" width="24" height="38" rx="8" fill="#f5c400"/>
+<circle cx="0" cy="-74" r="12" fill="#f0c8a0"/><path d="M-12 -76a12 12 0 0 1 24 0h7v4h-31z" fill="#b84a00"/><circle cx="5" cy="-72" r="1.8" fill="#16302b"/>`;
+/* Sitzender Fünftklässler für die Szenen (Mitte unten im Ursprung) */
+const sitter=i=>`<rect x="-11" y="-40" width="22" height="26" rx="7" fill="${SHIRT[i%5]}"/><circle cx="0" cy="-50" r="10" fill="${SKIN[(i*3+1)%5]}"/><path d="M-10 -51a10 10 0 0 1 20 0q-5-5-10-2q-5-3-10 2z" fill="${HAIR[(i*2+3)%5]}"/>`;
+/* Snackomat, Füße im Ursprung. eye = Farbe der Lampen (lila = verzaubert) */
+const snack=eye=>`<rect x="-44" y="-150" width="88" height="146" rx="8" fill="#c8d3d8" stroke="#39474f" stroke-width="3"/><rect x="-36" y="-140" width="52" height="94" rx="3" fill="#1d2730"/>
+${range(9).map(i=>`<rect x="${-32+i%3*16}" y="${-134+(i/3|0)*30}" width="12" height="20" rx="2" fill="${GC[i%4]}"/>`).join('')}
+<circle cx="30" cy="-128" r="6" fill="${eye}"/><circle cx="30" cy="-110" r="6" fill="${eye}"/><rect x="22" y="-96" width="16" height="30" rx="2" fill="#7d8f89"/>
+<rect x="-34" y="-36" width="68" height="18" rx="3" fill="#1d2730"/>
+<text x="0" y="-23" text-anchor="middle" font-size="9" font-weight="700" fill="#b89cf0">SNACK 5000</text><rect x="-40" y="-4" width="12" height="6" fill="#39474f"/><rect x="28" y="-4" width="12" height="6" fill="#39474f"/>`;
+const door=open=>`<rect x="702" y="124" width="68" height="126" fill="#5f6f6a"/><rect x="708" y="130" width="56" height="120" fill="${open?'#22312d':'#8fa39c'}"/>`
+  +(open?'<path d="M708 130l22 10v110h-22z" fill="#a9bbb5"/>':'<circle cx="756" cy="194" r="3.5" fill="#33423e"/>')
+  +`<circle cx="736" cy="110" r="7" fill="${open?'#1fae6b':'#d1344e'}" stroke="#fff" stroke-width="2"/>`;
+const spot=(x,st)=>`<g class="hs ${st}" transform="translate(${x},0)"><ellipse cx="0" cy="264" rx="26" ry="7"/><path d="M0 252v-48"/><circle cx="0" cy="184" r="19"/><text x="0" y="191" text-anchor="middle" font-size="20" font-weight="700">${st==='done'?'✓':st==='act'?'!':'?'}</text></g>`;
+const tiles=(y,a,b)=>`<rect y="${y}" width="800" height="${300-y}" fill="${a}"/>`+range(17).map(i=>`<path d="M${i*50} ${y}v${300-y}" stroke="${b}"/>`).join('')+`<path d="M0 ${y+25}h800" stroke="${b}"/>`;
+const prints=(x,y)=>range(4).map(i=>`<ellipse cx="${x+i*22}" cy="${y+(i%2?6:0)}" rx="4" ry="2.4" fill="#5b4a3a" opacity=".55"/>`).join('');
+const BG={
+ ausgabe:()=>`<rect width="800" height="250" fill="#f1ebe0"/>
+  <rect x="150" y="26" width="300" height="70" rx="4" fill="#24332f"/><text x="300" y="54" text-anchor="middle" font-size="18" font-weight="700" fill="#fff6cf" letter-spacing="2">HEUTE</text>
+  <text x="300" y="80" text-anchor="middle" font-size="15" fill="#b89cf0">nur für alle, die teilen können</text>
+  <rect x="490" y="30" width="62" height="44" rx="4" fill="#2b2140"/><circle cx="521" cy="52" r="9" fill="#b89cf0"/>
+  <rect x="60" y="150" width="580" height="16" fill="#9fb0aa"/><rect x="60" y="166" width="580" height="84" fill="#c9d4cf"/>
+  ${[120,230,340,450,560].map((x,i)=>`<rect x="${x-40}" y="136" width="80" height="14" rx="3" fill="#7d8f89"/><circle cx="${x-14}" cy="134" r="12" fill="${GC[i%4]}" opacity=".85"/><path d="M${x+6} 128h28v8h-28z" fill="${GC[(i+1)%4]}"/><path d="M${x-14} 118q-6-10 0-18M${x-4} 118q-6-10 0-18" stroke="#c3d1cb" stroke-width="3" fill="none"/>`).join('')}
+  <g transform="translate(600,150) scale(.8)">${WIZ}</g>
+  ${tiles(250,'#d9d2c3','#c4bba9')}`,
+ tische:()=>`<rect width="800" height="250" fill="#e6efe9"/>
+  ${range(4).map(i=>`<rect x="${40+i*170}" y="40" width="130" height="90" fill="#cfe6f5" stroke="#fff" stroke-width="6"/><path d="M${105+i*170} 40v90" stroke="#fff" stroke-width="4"/>`).join('')}
+  ${[170,470].map((x,k)=>`<g>${range(4).map(i=>`<g transform="translate(${x-70+i*46},214)">${sitter(i+k*4)}</g>`).join('')}<rect x="${x-110}" y="196" width="220" height="12" rx="3" fill="#a87d55"/><path d="M${x-96} 208v42M${x+96} 208v42" stroke="#a87d55" stroke-width="7"/>${range(4).map(i=>`<ellipse cx="${x-70+i*46}" cy="194" rx="15" ry="4" fill="#fff" stroke="#7d8f89" stroke-width="2"/>`).join('')}</g>`).join('')}
+  <rect y="250" width="800" height="50" fill="#d0dad3"/>${lines(250,'#b8c5bd')}`,
+ kueche:()=>`<rect width="800" height="250" fill="#eef2f2"/>${range(40).map(i=>`<rect x="${(i%10)*80}" y="${(i/10|0)*30+20}" width="80" height="30" fill="none" stroke="#d3dcdc"/>`).join('')}
+  <rect x="60" y="160" width="260" height="90" fill="#9aa7ad"/><rect x="60" y="150" width="260" height="12" fill="#6f7d84"/>
+  ${[110,190,270].map((x,i)=>`<rect x="${x-26}" y="${118-i*4}" width="52" height="${32+i*4}" rx="4" fill="#4d5c63"/><rect x="${x-32}" y="${116-i*4}" width="64" height="7" rx="3" fill="#39474f"/><path d="M${x-8} ${108-i*4}q-6-10 0-18M${x+6} ${108-i*4}q-6-10 0-18" stroke="#c3d1cb" stroke-width="3" fill="none"/>`).join('')}
+  <rect x="400" y="40" width="190" height="120" rx="4" fill="#fff" stroke="#7d8f89" stroke-width="3"/><text x="495" y="66" text-anchor="middle" font-size="16" font-weight="700" fill="#c8324a">KASSE</text>
+  <text x="420" y="94" font-size="14" fill="#16302b">Mehl  −12 €</text><text x="420" y="116" font-size="14" fill="#16302b">Milch  −8 €</text><text x="420" y="138" font-size="14" fill="#16302b">Äpfel  −6 €</text>
+  ${tiles(250,'#e3e8e8','#c9d1d1')}${prints(450,272)}`,
+ kiosk:()=>`<rect width="800" height="250" fill="#f3efe4"/>
+  <rect x="200" y="40" width="360" height="40" fill="#d9264a"/><text x="380" y="68" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" letter-spacing="4">KIOSK</text>
+  <rect x="200" y="80" width="360" height="100" fill="#27343c"/>${[100,130,160].map(y=>`<rect x="210" y="${y}" width="340" height="4" fill="#7d8f89"/>`).join('')}
+  ${range(18).map(i=>{const x=218+(i%9)*37,y=[84,114,144][i/9|0]+(i>=9?0:0);return i===13?`<rect x="${x}" y="${y+30}" width="22" height="16" rx="2" fill="none" stroke="#c3d1cb" stroke-dasharray="3 3"/>`:`<rect x="${x}" y="${(i<9?84:114)+(i%2?2:0)}" width="22" height="${i%3?14:16}" rx="2" fill="${GC[i%4]}"/>`}).join('')}
+  <rect x="190" y="180" width="380" height="70" fill="#b98a5a"/><rect x="190" y="176" width="380" height="8" fill="#8a6642"/>
+  <g transform="translate(90,250) scale(.8)">${WIZ}</g>
+  ${tiles(250,'#d9d2c3','#c4bba9')}`,
+ kammer:()=>`<rect width="800" height="250" fill="#e9e2d3"/>
+  ${[70,130].map(y=>`<rect x="40" y="${y}" width="620" height="8" fill="#8a6642"/>`).join('')}
+  ${range(24).map(i=>{const x=56+(i%12)*50,y=[70,130][i/12|0];return i===7?'':`<rect x="${x}" y="${y-(i%3?28:36)}" width="${i%4?34:40}" height="${i%3?28:36}" fill="${['#c9a46a','#b7905a','#d9b77c'][i%3]}" stroke="#8a6642"/>`}).join('')}
+  ${range(6).map(i=>`<rect x="${70+i*95}" y="196" width="70" height="54" fill="#b7905a" stroke="#8a6642" stroke-width="2"/><path d="M${70+i*95} 214h70" stroke="#8a6642"/>`).join('')}
+  <path d="M600 250q10-22 30-14q14-14 30 2q16-4 18 12z" fill="#b8742e"/><path d="M612 250q8-12 22-8q10-8 22 2z" fill="#d1913f"/>
+  <rect y="250" width="800" height="50" fill="#cbbfa6"/>${lines(250,'#b4a78b')}${prints(520,276)}`
+};
+/* Leben (Herzen) und Schutzschilde. lost = das gerade verlorene Herz blinkt. */
+const ICON={h:'M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z',s:'M12 2l8 3v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5z'};
+const icons=(k,n,max,lost)=>range(Math.max(n,max||0)).map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path class="${k}${i<n?'':' off'}${lost&&i===n?' lost':''}" d="${ICON[k]}"/></svg>`).join('');
+const maxLives=()=>G?G.S.lives:5;
+const hearts=(n,sh,lost)=>`<span class="lives" role="img" aria-label="${n} von ${maxLives()} Leben${sh?', '+sh+' Schutzschilde':''}">${sh?icons('s',sh):''}${icons('h',n,maxLives(),lost)}</span>`;
+
+/* ============ AUFGABENTYPEN ============ */
+/* Streit: Behauptungen. T = stimmt. txt = was das Kind sagt, why = Erklärung */
+const CLAIM={      // Die Bezugsgröße (von „einer Pizza“, von „allen Pizzen zusammen“) ist fett, das „von“ nicht, damit sie auffällt
+  T1:(m,p,w)=>({ok:1,txt:`Ich bekomme ${fr(1,p)} von <b>${vonAllen(m,w).slice(4)}</b>.`,why:`Stimmt: ${alleNom(m,w)} zusammen werden in ${p} gleiche Teile geteilt, jeder bekommt ${fr(1,p)} davon.`}),
+  T2:(m,p,w)=>({ok:1,txt:`Ich bekomme ${fr(m,p)} von <b>${DAT[w][0]}</b>.`,why:`Stimmt: ${dv(m,p)} = ${fr(m,p)}, gemeint ist der Anteil an einem einzigen Ganzen.`}),
+  T3:(m,p,w)=>({ok:1,txt:`Ich bekomme ${m} Stücke, jedes so groß wie ${fr(1,p)} von <b>${DAT[w][0]}</b>.`,why:`Stimmt: Jedes Ganze wird in ${p} Stücke geschnitten, und jeder bekommt von jedem Ganzen ein Stück. Das sind ${m} Stücke zu je ${fr(1,p)}, zusammen ${fr(m,p)}.`}),
+  F1:(m,p,w)=>({ok:0,txt:`Ich bekomme ${fr(1,p)} von <b>${DAT[w][0]}</b>.`,why:`${fr(1,p)} ${vonEins(w)} bekäme jeder, wenn nur ein Ganzes verteilt würde. Es sind aber ${m}.`}),
+  F2:(m,p,w)=>({ok:0,txt:`Ich bekomme ${fr(p,m)} von <b>${DAT[w][0]}</b>.`,why:`${fr(p,m)} ist mehr als ein Ganzes. Es gibt aber weniger ${FOOD[w][0]} als Kinder. Geteilt werden die ${m} ${FOOD[w][0]}, die ${m} steht oben.`}),
+  F3:(m,p,w)=>({ok:0,txt:`Ich bekomme ${fr(m,p)} von <b>${vonAllen(m,w).slice(4)}</b>.`,why:`${vonAllen(m,w).replace('von','Von')} bekommt jeder nur ${fr(1,p)}. ${fr(m,p)} gilt für ein einzelnes Ganzes.`})
+};
+/* Streit, Stufe 3: Begründungen. ok = richtige Begründung, bad = [falsche Begründung, warum sie nicht passt] */
+const REASON={
+  T1:(m,p,w)=>{const [pl,g]=FOOD[w];return {ok:`${alleNom(m,w)} zusammen werden in ${p} gleich große Teile geteilt. Jedes Kind bekommt einen dieser Teile.`,
+    bad:[[`Jedes Kind bekommt genau ein Stück, und ein Stück ist ${fr(1,p)} ${g}.`,`Jedes Kind bekommt nicht nur ein Stück, sondern von jedem der ${m} Ganzen eins.`],
+         [`${fr(1,p)} ist kleiner als 1, deshalb passt es.`,'Dass ein Bruch kleiner als 1 ist, sagt noch nicht, ob er zu dieser Verteilung passt.']]}},
+  T2:(m,p,w)=>{const [pl]=FOOD[w];return {ok:`${dv(m,p)} = ${fr(m,p)}. Jedes Kind bekommt so viel wie ${fr(m,p)} von einem einzigen Ganzen.`,
+    bad:[[`Jedes Kind bekommt ${fr(m,p)} ${vonAllen(m,w)}.`,`Von allen zusammen bekommt jedes Kind nur ${fr(1,p)}. ${fr(m,p)} bezieht sich auf ein einzelnes Ganzes.`],
+         ['Die kleinere Zahl steht immer oben.','Oben steht die Zahl, die geteilt wird. Das ist nicht einfach die kleinere Zahl.']]}},
+  T3:(m,p,w)=>{const [pl]=FOOD[w];return {ok:`Jedes Ganze wird in ${p} Stücke geschnitten, und jedes Kind bekommt von jedem Ganzen ein Stück. Das sind ${m} Stücke zu je ${fr(1,p)}.`,
+    bad:[[`Jedes Ganze wird in ${m} Stücke geschnitten.`,`Bei ${m} Stücken pro Ganzem bekämen nicht alle ${p} Kinder ein Stück von jedem Ganzen.`],
+         [`Jedes Kind bekommt ${m} ganze ${pl}.`,`Es gibt nur ${m} ${pl} für ${p} Kinder. Für ganze ${pl} reicht das nicht.`]]}},
+  F1:(m,p,w)=>{const [,g]=FOOD[w];return {ok:`${fr(1,p)} ${g} bekäme jedes Kind nur, wenn ein einziges Ganzes verteilt würde. Es sind aber ${m}.`,
+    bad:[[`${fr(1,p)} ist zu viel, jedes Kind bekommt weniger.`,`Jedes Kind bekommt sogar mehr als ${fr(1,p)}, nämlich ${m} Stücke zu je ${fr(1,p)}.`],
+         ['Brüche mit einer 1 oben gibt es beim Teilen nicht.',`Brüche wie ${fr(1,p)} gibt es sehr wohl, zum Beispiel wenn nur ein Ganzes geteilt wird.`]]}},
+  F2:(m,p,w)=>{const [pl]=FOOD[w];return {ok:`Zähler und Nenner sind vertauscht. Geteilt werden die ${m} ${pl}, also gehört ${m} nach oben. ${fr(p,m)} wäre mehr als ein Ganzes.`,
+    bad:[[`${fr(p,m)} ist weniger als ein Ganzes, das ist zu wenig.`,`${fr(p,m)} ist sogar mehr als ein Ganzes, weil oben die größere Zahl steht.`],
+         [`${m} durch ${p} geht nicht, weil es nicht aufgeht.`,`Mit Brüchen geht jede Division auf: ${dv(m,p)} = ${fr(m,p)}.`]]}},
+  F3:(m,p,w)=>{const [pl]=FOOD[w];return {ok:`${vonAllen(m,w).replace('von','Von')} bekommt jedes Kind nur ${fr(1,p)}. ${fr(m,p)} gilt für ein einzelnes Ganzes.`,
+    bad:[[`Es müsste ${fr(p,m)} von allen zusammen heißen.`,`${fr(p,m)} wäre mehr als alles zusammen. Das kann nicht sein.`],
+         [`Von allen zusammen bekommt jedes Kind ${m} Ganze.`,`Dann bräuchte man ${m*p} ${pl}. Es sind aber nur ${m}.`]]}}
+};
+/* negq: Lösung, Regeln und falsche Angebote (Vorzeichen vertauscht, Zähler/Nenner vertauscht, beides) */
+function negOpts(t){
+  const A=Math.abs(t.a),B=Math.abs(t.b),g=gcd(A,B),n=A/g,d=B/g,s=Math.sign(t.a)*Math.sign(t.b),both=t.a<0&&t.b<0;
+  const rule=both?'Minus geteilt durch Minus ergibt Plus, genau wie beim Malnehmen: Gleiche Vorzeichen ergeben Plus.'
+    :'Haben die beiden Zahlen verschiedene Vorzeichen, ist das Ergebnis negativ. Genau wie beim Malnehmen: Verschiedene Vorzeichen ergeben Minus.';
+  const swap=`Zähler und Nenner sind vertauscht. Die Zahl, die geteilt wird (${sn(t.a)}), gehört nach oben.`;
+  return {n,d,s,g,rule,swap,opts:[[sfr(s,n,d),''],[sfr(-s,n,d),rule,'sign'],[sfr(s,d,n),swap,'swap'],[sfr(-s,d,n),swap+' Und prüfe das Vorzeichen: '+rule,'swap']]};
+}
+
+/* ---- Eingabe über die Tastatur des Geräts: Feld antippen (Tablet-Tastatur öffnet sich) oder anklicken und tippen ----
+   Felder sind <input class="nf" data-f>. pad() liefert nur noch die Prüfen-Schaltfläche und bei negativen Zahlen „±“. */
+const fld=(f,on,cls)=>`<input class="nf${on?' on':''}${cls?' '+cls:''}" data-act="fld" data-f="${f}" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="4" aria-label="Eingabefeld">`;
+const fin=(on=1)=>`<div class="lab">${fld('top',on)}<div class="bar"></div>${fld('bot')}</div>`;      // Bruch: oben und unten
+const pad=(neg,label)=>`<div class="pad">${neg?'<button class="pk" data-act="key" data-k="-" aria-label="Minus davor setzen oder wegnehmen">±</button>':''}<button class="btn" data-act="chk">${label||'Prüfen'}</button></div>`;
+function padFocus(el,root){if(!el)return;$$('.nf',root).forEach(f=>f.classList.toggle('on',f===el));if(document.activeElement!==el)el.focus({preventScroll:true})}
+function padKey(k,root){      // Ziffer, Minus (umschalten) oder x (löschen) im gewählten Feld
+  const f=$('.nf.on:not(:disabled)',root)||$$('.nf',root).find(x=>!x.disabled&&x.offsetParent);if(!f)return;
+  let v=f.value;
+  if(k==='x')v=v.slice(0,-1);
+  else if(k==='-')v=v[0]==='-'?v.slice(1):'-'+v;
+  else if(v.replace('-','').length<3)v=(v==='0'?'':v==='-0'?'-':v)+k;
+  f.value=v;padFocus(f,root);
+}
+const cleanNum=v=>{v=(v||'').replace(/[−–]/g,'-').trim();return (v[0]==='-'?'-':'')+v.replace(/\D/g,'').slice(0,3)};
+addEventListener('input',e=>{const f=e.target;if(f.matches?.('.nf')){const c=cleanNum(f.value);if(c!==f.value)f.value=c}});
+addEventListener('focusin',e=>{const f=e.target;if(f.matches?.('.nf')){const r=f.closest('#stage,#bopts');if(r)$$('.nf',r).forEach(x=>x.classList.toggle('on',x===f))}});
+function padVals(root){const o={};$$('.nf',root).forEach(f=>{const v=cleanNum(f.value);o[f.dataset.f]=v===''||v==='-'?null:+v});return o}
+function padSet(root,f,v){const e=$(`.nf[data-f="${f}"]`,root);if(e)e.value=v==null?'':''+v}
+const autoFocus=root=>{if(matchMedia('(pointer:fine)').matches){const f=$('.nf.on:not(:disabled)',root);if(f)f.focus({preventScroll:true})}};   // nur am Computer, damit sich auf dem Tablet nicht ungefragt die Tastatur öffnet
+
+/* Bewertet die Eingabe a/b für den Bruch n/d (n mit Vorzeichen, d > 0, gekürzt):
+   ok | red (richtiger Wert, aber nicht vollständig gekürzt oder Minus oben und unten) | swap | sign | swapsign | zero | empty | no */
+function judge(a,b,n,d){
+  if(a==null||b==null)return 'empty';
+  if(b===0)return 'zero';
+  if(a*d===n*b)return gcd(Math.abs(a),Math.abs(b))===1&&!(a<0&&b<0)?'ok':'red';
+  if(n!==0&&a*n===b*d)return 'swap';
+  if(a*d===-n*b)return 'sign';
+  if(n!==0&&a*n===-b*d)return 'swapsign';
+  return 'no';
+}
+/* Stufe 3 (red, negq): Ein richtiges, aber ungekürztes Ergebnis bleibt stehen. Darunter erscheint eine neue Maske
+   „Kürze den Bruch vollständig“, das kostet kein Leben. Ist auch die zweite Maske nicht richtig, zählt es als Fehler. */
+function red2(t,a,b,html){
+  t.r2=1;mark(null,'red');
+  $$('#stage .nf').forEach(f=>{f.disabled=true;f.classList.remove('on')});
+  $('#stage .pad').insertAdjacentHTML('beforebegin',`<div class="screen" id="r2in"><p class="q">Kürze den Bruch vollständig.</p><div class="row"><span class="goal">${frv(a,b)}</span><span class="op">=</span><div class="lab">${fld('top2',1)}<div class="bar"></div>${fld('bot2')}</div></div></div>`);
+  pop('tip','Richtig, jetzt noch kürzen',`<p>${html}</p><p>Dein Bruch bleibt stehen. Kürze ihn jetzt vollständig. Das kostet kein Leben.</p>`,'Kürzen',()=>padFocus($('#stage [data-f="top2"]'),stage));
+}
+/* Stufe 3: Beim ersten richtigen, aber nicht vollständig gekürzten Ergebnis gibt es einen Hinweis ohne Lebensverlust.
+   Ist die Verbesserung wieder falsch, zählt es als Fehler. */
+function redHint(t,html){
+  if(t.hint)return wrong(html,null,'red');
+  t.hint=1;mark(null,'red');
+  hint('Fast, aber noch nicht fertig',`<p>${html}</p><p>Verbessere dein Ergebnis. Diesmal kostet das kein Leben.</p>`);
+}
+/* Endgegner: Antworten ohne doppelte Einträge, höchstens 6; die richtige steht vorn (wird beim Werfen gemischt) */
+const five=(ok,cands)=>{const seen=new Set([ok[0]]),o=[ok];cands.forEach(c=>{if(c&&!seen.has(c[0])&&o.length<6){seen.add(c[0]);o.push(c)}});return o};
+const needAll=()=>say('tip','Noch nicht fertig','Fülle zuerst alle Felder aus. Tippe ein Feld an und gib die Zahl ein.');
+
+const TYPES={
+ /* ---- share: Essen austeilen. Stufe 1 ziehen, Stufe 2 erst Bruch legen, dann wird verteilt, Stufe 3 schneiden und eingeben ---- */
+ share:{
+  q(t){const F=FOOD[t.w];return t.lv===1?`Teile ${t.m} ${F[0]} gerecht an ${t.p} Fünftklässler aus. Ziehe sie nacheinander auf den Tisch oder tippe auf den Tisch.`
+    :t.lv===2?`${t.m} ${F[0]} werden gerecht an ${t.p} Fünftklässler verteilt. Sie sind schon geschnitten. Welchen Anteil ${F[1]} bekommt jedes Kind? Lege den Bruch und tippe auf „Prüfen“.`
+    :`${t.m} ${F[0]} werden gerecht an ${t.p} Fünftklässler verteilt. Sie sind noch nicht geschnitten. In wie viele gleich große Stücke schneidest du jedes Ganze? Tippe die Zahl ein.`},
+  tip(t){
+    if(t.lv===1)return 'Schau nur auf einen Teller: Wie viele Stücke liegen dort? Und in wie viele Stücke ist ein Ganzes geschnitten?';
+    if(t.lv===3&&!t.cut)return `Jedes der ${t.p} Kinder soll von jedem Ganzen gleich viel bekommen. Schneide jedes Ganze in so viele Stücke, wie es Kinder gibt.`;
+    return `Jedes Ganze ist in ${t.p} Stücke geschnitten. Jedes Kind bekommt von jedem der ${t.m} Ganzen ein Stück. Wie viele Stücke sind das? Und welcher Bruch ist ein Stück?`;
+  },
+  seats(t){const bar=FOOD[t.w][2]==='bar';return range(t.p).map(i=>`<div class="seat${bar?' wide':''}">${esser(i+t.m,t.lv>1?KIDC[i]:0)}<div class="plate">${food(t.w,t.p,0)}</div></div>`).join('')},
+  render(t){
+    t.k=0;t.cut=0;t.hint=0;
+    const bar=FOOD[t.w][2]==='bar',F=FOOD[t.w];
+    const frac=`<div class="row"><span class="goal">${dv(t.m,t.p)}</span><span class="op">=</span>`;
+    const slots=`<div class="lab"><div class="slot sm" data-slot="top"></div><div class="bar"></div><div class="slot sm" data-slot="bot"></div></div></div>`;
+    const tiles=`<div class="tray">${numTiles(t.lv===2?six([t.m,t.p,t.m*t.p,t.p-t.m,1,t.m+t.p,t.p+1,2*t.p,t.m+1]):[t.m,t.p,t.m*t.p,t.p-t.m,1])}</div>`;
+    if(t.lv===1)return `<div class="feast" data-slot="table">${this.seats(t)}<span>Tisch der Fünftklässler</span></div>
+      <div class="tray" id="pantry">${range(t.m).map(()=>`<button class="drag card loaf${bar?' long':''}" data-val="w" aria-label="Ein Ganzes, in ${t.p} Stücke geschnitten">${food(t.w,t.p,t.p)}</button>`).join('')}</div>
+      <div class="screen" id="after" hidden><p class="q">Welchen Anteil ${F[1]} hat jedes Kind bekommen?</p>${frac}${slots}${tiles}</div>`;
+    const feast=`<div class="feast still">${this.seats(t)}<span>Tisch der Fünftklässler</span></div>`;
+    const counter=`<div class="counter${bar?' long':''}">${range(t.m).map(()=>`<div class="whole">${t.lv===2?food(t.w,t.p,t.p):food(t.w,1,1)}</div>`).join('')}<span>${t.lv===2?`${t.m} ${F[0]}, jedes Ganze in ${t.p} Stücke geschnitten`:`${t.m} ${F[0]}, noch nicht geschnitten`}</span></div>`;
+    if(t.lv===2)return feast+counter+`<div class="row">${slots}${tiles}<button class="btn chk" data-act="chk">Prüfen</button>`;      // nur die Bruchmaske, ohne Divisionsaufgabe
+    return feast+counter+`<div class="row" id="cutRow"><span class="q">Stücke pro Ganzes:</span>${fld('cut',1)}</div>
+      <div id="fracRow" hidden><div class="row">${fld('da',0,'sm')}<span class="op">:</span>${fld('db',0,'sm')}<span class="op">=</span>${fin(0)}</div></div>${pad(false)}`;
+  },
+  drop(t,el,slot){
+    const s=slot.dataset.slot,v=el.dataset.val;
+    if(t.lv>1){      // Stufe 2: Zahlen legen, erst „Prüfen“ wertet aus. Eine Zahl auf ein volles Feld tauscht die alte zurück.
+      if(s!=='top'&&s!=='bot')return;
+      const old=slot.querySelector('.tile'),from=el.parentElement.closest('[data-slot]');if(old===el)return;
+      if(old){if(from){from.append(old)}else{$('#stage .tray').append(old);slot.classList.remove('full')}}
+      else if(from)from.classList.remove('full');
+      place(el,slot);el.classList.add('drag');slot.classList.add('full');return;
+    }
+    if(v==='w'){                     // ein Ganzes verteilen: Jedes Kind bekommt ein Stück
+      if(s!=='table')return;
+      el.remove();t.k++;
+      $$('#stage .plate').forEach(p=>p.innerHTML=food(t.w,t.p,t.k));
+      if(t.k<t.m)return say('tip','Verteilt',`Jedes Kind bekommt ein Stück davon. Auf jedem Teller: ${t.k} ${t.k===1?'Stück':'Stücke'}.`);
+      $('#pantry').hidden=true;$('#after').hidden=false;
+      return say('tip','Alles verteilt',`Auf jedem Teller liegen jetzt ${t.m} Stücke. Baue unten den Bruch dazu.`);
+    }
+    if(s==='table'||slot.firstChild)return;
+    const up=s==='top',n=+v;
+    if(n===(up?t.m:t.p)){
+      place(el,slot);slot.classList.add('full');
+      if(!$('#after .slot:not(.full)'))solved(`${dv(t.m,t.p)} = ${fr(t.m,t.p)}. Jedes Kind bekommt ${t.m} Stücke, und jedes Stück ist ${fr(1,t.p)} ${FOOD[t.w][1]}.`);
+      return;
+    }
+    wrong(up&&n===t.p?`${t.p} ist die Zahl der Stücke, in die ein Ganzes geschnitten ist. Sie gehört nach unten. Oben steht, wie viele Stücke auf einem Teller liegen.`
+      :!up&&n===t.m?`${t.m} Stücke liegen auf jedem Teller, das ist der Zähler. Unten steht, in wie viele Stücke ein Ganzes geschnitten ist.`
+      :n===t.m*t.p?`${n} Stücke gibt es insgesamt auf allen Tellern. Schau nur auf einen Teller.`
+      :up&&n===1?`Jedes Kind hat nicht nur ein Stück bekommen. Zähle die Stücke auf einem Teller.`
+      :'Schau auf einen Teller: Wie viele Stücke liegen dort, und in wie viele Stücke ist ein Ganzes geschnitten?',el,(up&&n===t.p)||(!up&&n===t.m)?'swap':'');
+  },
+  tap(t,slot){
+    const b=$('#stage .loaf');
+    if(b&&slot.dataset.slot==='table')this.drop(t,b,slot);
+    else if(slot.dataset.slot!=='table')say('tip','So geht es','Ziehe eine Zahl hierher. Oder tippe erst die Zahl an und dann das Feld.');
+  },
+  check(t,v){
+    const F=FOOD[t.w];
+    if(t.lv===2){
+      const g=s=>{const e=$(`#stage [data-slot="${s}"] .tile`);return e?+e.dataset.val:null};
+      const a=g('top'),b=g('bot');
+      if(a==null||b==null)return say('tip','Noch nicht fertig','Lege oben und unten eine Zahl.');
+      return a===t.m&&b===t.p?this.deal(t):this.miss(t,a,b);
+    }
+    if(!t.cut){
+      const x=v.cut;if(x==null)return say('tip','Noch nicht fertig','Tippe zuerst ein, in wie viele Stücke du jedes Ganze schneidest.');
+      if(x===t.p){
+        t.cut=1;const c=$('#stage [data-f="cut"]');c.disabled=true;c.classList.remove('on');
+        $$('#stage .whole').forEach(w=>w.innerHTML=food(t.w,t.p,t.p));
+        $('#stage .counter>span').textContent=`${t.m} ${F[0]}, jedes Ganze in ${t.p} Stücke geschnitten`;
+        $('#fracRow').hidden=false;padFocus($('#stage [data-f="da"]'),$('#stage'));
+        $('#q').innerHTML=`Jedes Ganze ist jetzt in ${t.p} gleich große Stücke geschnitten. Schreibe die Verteilung als Divisionsaufgabe und den Anteil ${F[1]}, den jedes Kind bekommt, als Bruch. Tippe alle vier Zahlen ein und dann auf „Prüfen“.`;
+        return say('good','Richtig geschnitten',`Jedes Kind kann jetzt von jedem Ganzen ein Stück bekommen.`);
+      }
+      if(x>t.p&&x%t.p===0)return hint('Gerecht, aber zu klein geschnitten',`<p>Bei ${x} Stücken bekommt jedes Kind von jedem Ganzen ${x/t.p} Stücke. Das ist gerecht, geht aber einfacher: Nimm so viele Stücke, wie es Kinder gibt.</p>`);
+      padSet($('#stage'),'cut',null);
+      return wrong(x===t.m?`Du hast so viele Stücke wie Ganze genommen. Aber alle ${t.p} Kinder sollen von jedem Ganzen ein Stück bekommen.`
+        :x<=1?`Ohne Schneiden können ${t.p} Kinder die ${t.m} ${F[0]} nicht gerecht teilen.`
+        :`Bei ${x} Stücken pro Ganzem bekommen die ${t.p} Kinder nicht alle gleich viele Stücke von einem Ganzen. Schneide jedes Ganze in so viele Stücke, wie es Kinder gibt.`);
+    }
+    if([v.da,v.db,v.top,v.bot].some(x=>x==null))return needAll();
+    if(v.da!==t.m||v.db!==t.p){const sw=v.da===t.p&&v.db===t.m;
+      return wrong(sw?`Bei der Divisionsaufgabe sind die Zahlen vertauscht. Geteilt werden die ${t.m} ${F[0]}, also steht ${t.m} vor dem Geteilt-Zeichen.`
+        :`Prüfe die Divisionsaufgabe: ${t.m} ${F[0]} werden an ${t.p} Kinder verteilt. Vor dem Geteilt-Zeichen steht, was verteilt wird. Dahinter steht, an wie viele.`,null,sw?'swap':'')}
+    const j=judge(v.top,v.bot,t.m,t.p);
+    if(j==='ok')return this.deal(t);
+    if(j==='red')return redHint(t,`${frv(v.top,v.bot)} hat den richtigen Wert, ist aber noch nicht vollständig gekürzt.`);
+    this.miss(t,v.top,v.bot);
+  },
+  miss(t,a,b){
+    const F=FOOD[t.w],m=t.m,p=t.p,sw=a===p&&b===m;
+    const txt=sw?`Zähler und Nenner sind vertauscht. Oben steht, wie viele Stücke ein Kind bekommt (${m}). Unten steht, in wie viele Stücke ein Ganzes geschnitten ist (${p}).`
+      :b===m*p?`${m*p} Stücke gibt es insgesamt. Unten steht aber, in wie viele Stücke ein einziges Ganzes geschnitten ist.`
+      :a===1&&b===p?`Jedes Kind bekommt nicht nur ein Stück, sondern von jedem der ${m} Ganzen eins.`
+      :a===m?'Oben stimmt. Unten steht, in wie viele Stücke ein Ganzes geschnitten ist.'
+      :b===p?'Unten stimmt. Oben steht, wie viele Stücke ein Kind bekommt.'
+      :'Schau auf einen Teller: Wie viele Stücke bekommt ein Kind, und in wie viele Stücke ist ein Ganzes geschnitten?';
+    const pic=a>0&&b>0&&a<b&&b<=12?`<div class="figbox">${food(t.w,b,a,150)}</div><p>So sähe ${fr(a,b)} ${F[1]} aus.</p>`:'';
+    wrong(`<p>${txt}</p>${pic}`,null,sw?'swap':'');
+  },
+  deal(t){      // richtig: Ganzes für Ganzes verteilen, jedes Kind nimmt sich ein Stück in seiner Farbe
+    G.done=true;
+    const W=$$('#stage .whole'),P=$$('#stage .plate');let j=0;
+    say('good','Richtig! Jetzt wird verteilt.','Jedes Kind bekommt von jedem Ganzen ein Stück in seiner Farbe.');
+    const step=()=>{
+      if(!G||G.tasks[G.i]!==t)return;
+      if(j>=t.m)return solved(`${dv(t.m,t.p)} = ${fr(t.m,t.p)}. Jedes Kind bekommt ${t.m} Stücke, und jedes Stück ist ${fr(1,t.p)} ${FOOD[t.w][1]}.`);
+      W[j].innerHTML=food(t.w,t.p,KIDC.slice(0,t.p));j++;
+      P.forEach((pl,i)=>pl.innerHTML=food(t.w,t.p,Array(j).fill(KIDC[i])));
+      setTimeout(step,j<t.m?750:1100);
+    };
+    setTimeout(step,300);
+  }},
+ /* ---- quot: Division als Bruch und umgekehrt. Stufe 2 Lücken, Stufe 3 Eingabe ---- */
+ quot:{
+  q(t){
+    if(t.lv===2&&!t.rev)return 'Welche Zahl fehlt? Ziehe sie in die Lücke.';
+    if(t.lv===3&&t.rev)return `Schreibe ${fr(t.n,t.d)} als Divisionsaufgabe. Tippe die beiden Zahlen ein.`;
+    if(t.lv===3)return [`Teile ${t.n} durch ${t.d}. Schreibe das Ergebnis als Bruch.`,`${t.n} geteilt durch ${t.d}: Welcher Bruch ist das? Tippe ihn ein.`,
+      `Welcher Bruch gehört zu ${dv(t.n,t.d)}? Tippe ihn ein.`,`Schreibe den Quotienten ${dv(t.n,t.d)} als Bruch.`][t.tpl||0];
+    return t.rev?`Schreibe ${fr(t.n,t.d)} als Divisionsaufgabe.`:`Schreibe ${dv(t.n,t.d)} als Bruch.`;
+  },
+  tip:()=>'Der Bruchstrich bedeutet „geteilt durch“. Die Zahl, die geteilt wird, steht oben. Die Zahl, durch die geteilt wird, steht unten.',
+  render(t){
+    const sl=s=>`<div class="slot sm" data-slot="${s}"></div>`,tiles=`<div class="tray">${numTiles([t.n,t.d,t.d-t.n,t.n+t.d,t.n*t.d])}</div>`;
+    if(t.lv===3)return (t.rev?`<div class="row"><span class="goal">${fr(t.n,t.d)}</span><span class="op">=</span>${fld('top',1)}<span class="op">:</span>${fld('bot')}</div>`
+      :`<div class="row"><span class="goal">${dv(t.n,t.d)}</span><span class="op">=</span>${fin()}</div>`)+pad(false);
+    if(t.lv===2&&!t.rev){const g=t.gap==='n';
+      return `<div class="row">${g?sl('gap'):`<span class="goal">${t.n}</span>`}<span class="op">:</span>${g?`<span class="goal">${t.d}</span>`:sl('gap')}<span class="op">=</span><span class="goal">${fr(t.n,t.d)}</span></div>${tiles}`}
+    return `<div class="row">`+(t.rev?`<span class="goal">${fr(t.n,t.d)}</span><span class="op">=</span>${sl('top')}<span class="op">:</span>${sl('bot')}`
+      :`<span class="goal">${dv(t.n,t.d)}</span><span class="op">=</span><div class="lab">${sl('top')}<div class="bar"></div>${sl('bot')}</div>`)+`</div>${tiles}`;
+  },
+  drop(t,el,slot){
+    if(slot.firstChild)return;
+    const v=+el.dataset.val;
+    if(slot.dataset.slot==='gap'){
+      const g=t.gap==='n',want=g?t.n:t.d;
+      if(v===want){place(el,slot);slot.classList.add('full');return solved(`${dv(t.n,t.d)} = ${fr(t.n,t.d)}. Der Zähler wird durch den Nenner geteilt.`)}
+      return wrong(v===(g?t.d:t.n)?`Zähler und Nenner sind vertauscht. Bei ${fr(t.n,t.d)} wird der Zähler ${t.n} durch den Nenner ${t.d} geteilt. ${g?'Vor':'Hinter'} das Geteilt-Zeichen gehört ${want}.`
+        :'Hier wird nichts ausgerechnet. Der Bruchstrich ersetzt nur das Geteilt-Zeichen, die beiden Zahlen bleiben dieselben.',el,v===(g?t.d:t.n)?'swap':'');
+    }
+    const up=slot.dataset.slot==='top';
+    if(v===(up?t.n:t.d)){
+      place(el,slot);slot.classList.add('full');
+      if(!$('#stage .slot:not(.full)'))solved(`${dv(t.n,t.d)} = ${fr(t.n,t.d)}. Der Bruchstrich bedeutet „geteilt durch“.`);
+      return;
+    }
+    const sw=v===(up?t.d:t.n);
+    wrong(sw?(t.rev?(up?`Der Nenner ${t.d} ist die Zahl, durch die geteilt wird. Er steht hinter dem Geteilt-Zeichen.`
+                         :`Der Zähler ${t.n} ist die Zahl, die geteilt wird. Er steht vor dem Geteilt-Zeichen.`)
+                     :(up?`Bei ${dv(t.n,t.d)} wird die ${t.n} geteilt. Die Zahl, die geteilt wird, steht oben.`
+                         :`Die ${t.n} wird geteilt, sie gehört nach oben. Unten steht die Zahl, durch die geteilt wird.`))
+      :'Hier wird nichts ausgerechnet. Der Bruchstrich ersetzt nur das Geteilt-Zeichen, die beiden Zahlen bleiben dieselben.',el,sw?'swap':'');
+  },
+  check(t,v){
+    const {n,d}=t,a=v.top,b=v.bot;
+    if(a==null||b==null)return needAll();
+    if(t.rev){
+      if(a===n&&b===d)return solved(`${fr(n,d)} = ${dv(n,d)}. Der Zähler wird durch den Nenner geteilt.`);
+      if(b&&a*d===b*n)return solved(`${dv(a,b)} = ${fr(a,b)} = ${fr(n,d)}. Das stimmt auch. Am einfachsten ist ${dv(n,d)}.`);
+      return wrong(a===d&&b===n?`Zähler und Nenner sind vertauscht. Der Zähler ${n} ist die Zahl, die geteilt wird. Er steht vor dem Geteilt-Zeichen.`
+        :'Der Bruchstrich bedeutet „geteilt durch“: Der Zähler wird durch den Nenner geteilt. Die Zahlen bleiben dieselben.',null,a===d&&b===n?'swap':'');
+    }
+    const j=judge(a,b,n,d);
+    if(j==='ok')return solved(`${dv(n,d)} = ${fr(n,d)}. Der Bruchstrich bedeutet „geteilt durch“.`);
+    if(j==='red')return solved(`${frv(a,b)} hat denselben Wert wie ${dv(n,d)}. Am einfachsten schreibst du ${fr(n,d)}.`);
+    wrong(j==='swap'?`Zähler und Nenner sind vertauscht. Bei ${dv(n,d)} wird die ${n} geteilt. Sie steht oben.`
+      :'Hier wird nichts ausgerechnet. Der Bruchstrich ersetzt nur das Geteilt-Zeichen, die beiden Zahlen bleiben dieselben.',null,j==='swap'?'swap':'');
+  },
+  quick(t){
+    if(t.d>12)return null;
+    const {n,d}=t;
+    const same='Hier wird nichts ausgerechnet. Der Bruchstrich ersetzt nur das Geteilt-Zeichen, die beiden Zahlen bleiben dieselben.';
+    return t.rev?{q:`Welche Divisionsaufgabe gehört zu ${fr(n,d)}?`,opts:five([dv(n,d),''],[[dv(d,n),`Zähler und Nenner sind vertauscht. Der Zähler ${n} ist die Zahl, die geteilt wird.`,'swap'],
+        [`${n} · ${d}`,'Der Bruchstrich bedeutet „geteilt durch“, nicht „mal“.'],[`${n} + ${d}`,'Der Bruchstrich bedeutet „geteilt durch“, nicht „plus“.'],
+        [`${d} − ${n}`,'Der Bruchstrich bedeutet „geteilt durch“, nicht „minus“.'],[dv(1,d),`Der Zähler ${n} ist die Zahl, die geteilt wird.`]])}
+      :{q:`Schreibe ${dv(n,d)} als Bruch.`,opts:five([fr(n,d),''],[[fr(d,n),`Bei ${dv(n,d)} wird die ${n} geteilt. Sie steht oben.`,'swap'],[fr(n,n+d),'Hier wird nichts addiert. Der Bruchstrich ersetzt nur das Geteilt-Zeichen.'],
+        [fr(1,d),`Oben steht die Zahl, die geteilt wird: ${n}.`],[fr(d-n,d),'Hier wird nichts abgezogen. Der Bruchstrich ersetzt nur das Geteilt-Zeichen.'],
+        [`${n*d}`,'Hier wird nichts malgenommen. Der Bruchstrich ersetzt nur das Geteilt-Zeichen.'],[fr(n+1,d),same],[fr(n,d+1),same]])};
+  }},
+ /* ---- red: Division als gekürzter Bruch. Stufe 2 in drei Schritten, Stufe 3 Eingabe ---- */
+ red:{
+  q(t){const a=t.n*t.k,b=t.d*t.k;return t.lv===2?`Schreibe ${dv(a,b)} als Bruch. Kürze danach Schritt für Schritt.`
+    :t.lv===1?`Schreibe ${dv(a,b)} zuerst als Bruch. Kürze ihn danach vollständig.`
+    :`Schreibe ${dv(a,b)} als Bruch und kürze vollständig.`+(t.lv===3?' Tippe das Ergebnis ein.':'')},
+  tip:t=>`Schreibe zuerst ${fr(t.n*t.k,t.d*t.k)}. Dann kürze: Durch welche Zahl kannst du ${t.n*t.k} und ${t.d*t.k} beide teilen? Nimm die größte.`,
+  ks(t){      // Angebote zum Kürzen: die richtige Zahl, ein Teiler davon, Zahlen, die nicht in beiden stecken
+    const a=t.n*t.k,b=t.d*t.k,o=new Set([t.k]);
+    for(let h=t.k-1;h>1;h--)if(t.k%h===0){o.add(h);break}
+    shuffle(range(8).map(i=>i+2)).forEach(x=>{if(o.size<4&&(a%x||b%x))o.add(x)});
+    return shuffle([...o]);
+  },
+  tiles1(t){      // Schritt 1: Zahlen für den ungekürzten Bruch, ohne Zähler und Nenner des gekürzten Bruchs
+    const a=t.n*t.k,b=t.d*t.k,no=[t.n,t.d].filter(x=>x!==a&&x!==b);
+    return numTiles([a,b,t.k,a+b,b-a,2*b,b+t.k].filter(x=>!no.includes(x)).filter((x,i,A)=>A.indexOf(x)===i).slice(0,5));
+  },
+  render(t){
+    t.hint=0;t.step=0;t.r2=0;
+    const a=t.n*t.k,b=t.d*t.k,lab=(u,v)=>`<div class="lab"><div class="slot sm" data-slot="${u}"></div><div class="bar"></div><div class="slot sm" data-slot="${v}"></div></div>`;
+    if(t.lv===3)return `<div class="row"><span class="goal">${dv(a,b)}</span><span class="op">=</span>${fin()}</div>${pad(false)}`;
+    const half=t.k%2===0&&t.k>2?[a/2,b/2]:[];
+    if(t.lv===1)return `<div class="row"><span class="goal">${dv(a,b)}</span><span class="op">=</span>${lab('top','bot')}</div>
+      <div class="tray" id="t1">${this.tiles1(t)}</div>
+      <div class="screen" id="r3" hidden><p class="q">Kürze jetzt vollständig.</p><div class="row"><span class="goal">${fr(a,b)}</span><span class="op">=</span>${lab('top2','bot2')}</div><div class="tray">${numTiles([t.n,t.d,a,b,t.k,...half])}</div></div>`;
+    if(t.lv===2)return `<div class="row"><span class="goal">${dv(a,b)}</span><span class="op">=</span>${lab('top','bot')}</div>
+      <div class="tray" id="t1">${this.tiles1(t)}</div>
+      <div class="screen" id="r2" hidden><p class="q">Durch welche Zahl kürzt du vollständig? Tippe sie an.</p><div class="opts">${this.ks(t).map(x=>`<button class="opt" data-act="kz" data-v="${x}">${x}</button>`).join('')}</div></div>
+      <div class="screen" id="r3" hidden><div class="row"><span class="goal">${fr(a,b)}</span><span class="op">=</span>${lab('top2','bot2')}</div><div class="tray">${numTiles([t.n,t.d,a,b,t.k])}</div></div>`;
+  },
+  drop(t,el,slot){
+    if(slot.firstChild)return;
+    const s=slot.dataset.slot,v=+el.dataset.val,a=t.n*t.k,b=t.d*t.k;
+    if(s==='top'||s==='bot'){      // Schritt 1: ungekürzter Bruch
+      const up=s==='top',want=up?a:b;
+      if(v===want){place(el,slot);slot.classList.add('full');
+        if(!$('#stage [data-slot="top"]:empty')&&!$('#stage [data-slot="bot"]:empty')){$('#t1').hidden=true;$(t.lv===2?'#r2':'#r3').hidden=false;
+          say('good','Richtig',`${dv(a,b)} = ${fr(a,b)}. Jetzt wird gekürzt.`)}
+        return}
+      return wrong(v===(up?b:a)?`Zähler und Nenner sind vertauscht. Die Zahl, die geteilt wird (${a}), gehört nach oben.`
+        :v===(up?t.n:t.d)?'Gekürzt wird gleich. Schreibe zuerst die Divisionsaufgabe als Bruch: Die beiden Zahlen bleiben dieselben.'
+        :'Schreibe zuerst die Divisionsaufgabe als Bruch: Die beiden Zahlen bleiben dieselben.',el,v===(up?b:a)?'swap':'');
+    }
+    const up=s==='top'||s==='top2',want=up?t.n:t.d,other=up?t.d:t.n;
+    if(v===want){
+      place(el,slot);slot.classList.add('full');
+      if(!$$('#stage .slot').some(x=>!x.classList.contains('full')))solved(`${dv(a,b)} = ${fr(a,b)} = ${fr(t.n,t.d)}. Gekürzt mit ${t.k}.`);
+      return;
+    }
+    if(t.lv===1&&v>want&&v%want===0&&t.k%(v/want)===0){      // ungekürzt oder nur teilweise gekürzt: richtig, aber nicht fertig
+      mark(null,'red');
+      return hint('Fast, aber noch nicht fertig',`<p>Mit ${v} ${up?'oben':'unten'} stimmt der Wert, aber der Bruch ist noch nicht vollständig gekürzt. Suche die größte Zahl, durch die du ${a} und ${b} beide teilen kannst. Das kostet kein Leben.</p>`);
+    }
+    const sw=v===other||(v>other&&v%other===0&&t.k%(v/other)===0);
+    wrong(sw?`Zähler und Nenner sind vertauscht. Die Zahl, die geteilt wird (${a}), gehört nach oben.`
+      :v===t.k?`${t.k} ist die Zahl, durch die du kürzt. Sie steht nicht selbst im Bruch. Teile ${up?a:b} durch ${t.k}.`
+      :t.lv===2?`Teile ${up?a:b} durch ${t.k}.`
+      :`Schreibe erst ${fr(a,b)}. Teile dann Zähler und Nenner durch dieselbe Zahl.`,el,sw?'swap':'');
+  },
+  kz(t,el){      // Stufe 2, Schritt 2: Kürzungszahl wählen
+    const x=+el.dataset.v,a=t.n*t.k,b=t.d*t.k;
+    if(x===t.k){el.classList.add('ok');$$('#r2 .opt').forEach(o=>o.disabled=true);$('#r3').hidden=false;
+      return say('good','Richtig',`${t.k} ist die größte Zahl, durch die du ${a} und ${b} beide teilen kannst. Lege jetzt den gekürzten Bruch.`)}
+    if(a%x===0&&b%x===0){mark(null,'red');
+      return hint('Damit geht es, aber noch nicht ganz',`<p>Durch ${x} kannst du ${a} und ${b} beide teilen. Danach könntest du aber noch weiter kürzen. Nimm die größte Zahl, die in beiden steckt. Das kostet kein Leben.</p>`)}
+    el.classList.add('bad');el.disabled=true;
+    wrong(`${x} passt nicht: ${a%x?a:b} lässt sich nicht ohne Rest durch ${x} teilen.`,el);
+  },
+  check(t,v){
+    const a=t.n*t.k,b=t.d*t.k;
+    if(t.r2){const j=judge(v.top2,v.bot2,t.n,t.d);
+      if(j==='empty')return needAll();
+      if(j==='ok')return solved(`${dv(a,b)} = ${fr(a,b)} = ${fr(t.n,t.d)}. Gekürzt mit ${t.k}.`);
+      return wrong(j==='red'?`${frv(v.top2,v.bot2)} ist noch nicht vollständig gekürzt. Suche die größte Zahl, durch die du ${a} und ${b} beide teilen kannst.`
+        :'Beim Kürzen werden Zähler und Nenner durch dieselbe Zahl geteilt. Der Wert des Bruchs bleibt gleich.',null,'red')}
+    const j=judge(v.top,v.bot,t.n,t.d);
+    if(j==='empty')return needAll();
+    if(j==='ok')return solved(`${dv(a,b)} = ${fr(a,b)} = ${fr(t.n,t.d)}. Gekürzt mit ${t.k}.`);
+    if(j==='red')return red2(t,v.top,v.bot,`${frv(v.top,v.bot)} hat den richtigen Wert.`);
+    wrong(j==='swap'?`Zähler und Nenner sind vertauscht. Die Zahl, die geteilt wird (${a}), gehört nach oben.`
+      :v.top===t.k||v.bot===t.k?`${t.k} ist die Zahl, durch die du kürzt. Sie steht nicht selbst im Bruch.`
+      :`Schreibe erst ${fr(a,b)}. Teile dann Zähler und Nenner durch dieselbe Zahl.`,null,j==='swap'?'swap':'');
+  },
+  quick(t){
+    const a=t.n*t.k,b=t.d*t.k;
+    return {q:`Schreibe ${dv(a,b)} als vollständig gekürzten Bruch.`,
+      opts:five([fr(t.n,t.d),''],[[fr(a,b),`${fr(a,b)} hat den richtigen Wert, ist aber nicht gekürzt. Teile oben und unten durch ${t.k}.`,'red'],
+            [fr(t.d,t.n),'Zähler und Nenner sind vertauscht.','swap'],[fr(t.n,b),'Beim Kürzen werden Zähler und Nenner durch dieselbe Zahl geteilt, nicht nur einer.'],
+            [fr(a,t.d),'Beim Kürzen werden Zähler und Nenner durch dieselbe Zahl geteilt, nicht nur einer.'],[fr(b,a),'Zähler und Nenner sind vertauscht, und gekürzt ist auch nicht.','swap']])};
+  }},
+ /* ---- negq: Division mit negativen Zahlen. Stufe 1 und 2 antippen, Stufe 3 mit Minus-Taste eingeben ---- */
+ negq:{
+  q:t=>`Schreibe ${dv(t.a,t.b)} als Bruch und kürze vollständig. `+(t.lv===3?'Tippe das Ergebnis ein. Ein Minus setzt du mit der Minustaste oder mit „±“.':'Tippe das richtige Ergebnis an.'),
+  tip:t=>`Rechne zuerst ohne Vorzeichen: ${Math.abs(t.a)} : ${Math.abs(t.b)} = ${fr(Math.abs(t.a),Math.abs(t.b))}${gcd(Math.abs(t.a),Math.abs(t.b))>1?', dann kürzen':''}. Danach das Vorzeichen: Gleiche Vorzeichen ergeben Plus, verschiedene ergeben Minus.`,
+  render(t){
+    t.hint=0;t.r2=0;
+    if(t.lv===3)return `<div class="row"><span class="goal">${dv(t.a,t.b)}</span><span class="op">=</span>${fin()}</div>${pad(true)}`;
+    t.o=shuffle(negOpts(t).opts);
+    return `<div class="row"><span class="goal">${dv(t.a,t.b)}</span><span class="op">=</span><span class="goal">?</span></div>
+    <div class="opts">${t.o.map((o,i)=>`<button class="opt" data-act="pick" data-v="${i}">${o[0]}</button>`).join('')}</div>`;
+  },
+  sol(t){const r=negOpts(t);return `${dv(t.a,t.b)} = ${sfr(r.s,r.n,r.d)}.`+(r.g>1?` Gekürzt mit ${r.g}.`:'')+(r.s<0?` Das Minus darf auch in den Zähler: ${sfr(-1,r.n,r.d)} = ${fr('−'+r.n,r.d)}.`:'')},
+  pick(t,el){
+    const o=t.o[+el.dataset.v];
+    if(!o[1]){el.classList.add('ok');$$('#stage .opt').forEach(b=>b.disabled=true);return solved(this.sol(t))}
+    el.classList.add('bad');el.disabled=true;wrong(o[1],el,o[2]);
+  },
+  check(t,v){
+    const r=negOpts(t);
+    if(t.r2){const j=judge(v.top2,v.bot2,r.s*r.n,r.d);
+      if(j==='empty')return needAll();
+      if(j==='ok')return solved(this.sol(t));
+      return wrong(j==='red'?`${frv(v.top2,v.bot2)} ist noch nicht fertig.`+(v.top2<0&&v.bot2<0?' Minus geteilt durch Minus ergibt Plus.':' Kürze vollständig.')
+        :j==='sign'?'Beim Kürzen bleibt das Vorzeichen gleich. '+r.rule:'Beim Kürzen werden Zähler und Nenner durch dieselbe Zahl geteilt. Der Wert des Bruchs bleibt gleich.',null,j==='sign'?'sign':'red')}
+    const j=judge(v.top,v.bot,r.s*r.n,r.d);
+    if(j==='empty')return needAll();
+    if(j==='ok')return solved(this.sol(t));
+    if(j==='red')return red2(t,v.top,v.bot,`${frv(v.top,v.bot)} hat den richtigen Wert.`+(v.top<0&&v.bot<0?' Minus geteilt durch Minus ergibt aber Plus, das Minus darf weg.':''));
+    if(j==='sign')return wrong(r.rule,null,'sign');
+    if(j==='swap'||j==='swapsign')return wrong(r.swap+(j==='swapsign'?' Und prüfe das Vorzeichen: '+r.rule:''),null,'swap');
+    wrong(this.tip(t));
+  },
+  quick(t){
+    const r=negOpts(t),A=Math.abs(t.a),B=Math.abs(t.b),s=r.s,add='Hier wird nichts addiert. Der Bruchstrich ersetzt nur das Geteilt-Zeichen.';
+    return {q:`Schreibe ${dv(t.a,t.b)} als vollständig gekürzten Bruch.`,opts:five(r.opts[0],[...r.opts.slice(1),
+      r.g>1?[sfr(s,A,B),`${fr(A,B)} hat den richtigen Wert, ist aber nicht vollständig gekürzt.`,'red']:null,
+      r.g>1?[sfr(-s,A,B),r.rule+' Und kürze vollständig.','sign']:null,
+      [sfr(s,r.n,r.n+r.d),add],[sfr(-s,r.n,r.n+r.d),add]])}}},
+ /* ---- negrev (nur Stufe 2): Welche Divisionsaufgaben ergeben den Bruch? Drei von sechs, auch mit Kürzen ---- */
+ negrev:{
+  q:t=>`Welche Divisionsaufgaben ergeben ${sfr(t.s,t.n,t.d)}? Tippe alle drei an und dann auf „Prüfen“.`,
+  tip:()=>'Schreibe jede Aufgabe als Bruch und kürze, wenn es geht. Dann das Vorzeichen: Gleiche Vorzeichen ergeben Plus, verschiedene ergeben Minus. Und die Zahl, die geteilt wird, steht oben.',
+  render(t){t.sel=new Set();
+    return `<div class="opts">${t.cards.map((c,i)=>`<button class="opt mid" data-act="tog" data-v="${i}">${dv(c[0],c[1])}</button>`).join('')}</div><button class="btn chk" data-act="chk" id="nrchk" disabled>Prüfen (0 von 3 gewählt)</button>`},
+  count(t){const b=$('#nrchk');b.disabled=t.sel.size!==3;b.textContent=`Prüfen (${t.sel.size} von 3 gewählt)`},
+  tog(t,el){const i=+el.dataset.v;t.sel.has(i)?t.sel.delete(i):t.sel.add(i);el.classList.toggle('on',t.sel.has(i));this.count(t)},
+  why(t,a,b){
+    const A=Math.abs(a),B=Math.abs(b),g=gcd(A,B),s=Math.sign(a)*Math.sign(b),n=A/g,d=B/g;
+    const val=`${dv(a,b)} ergibt ${sfr(s,n,d)}${g>1?`, gekürzt mit ${g}`:''}.`;
+    if(n===t.n&&d===t.d)return [`${val} ${s>0?'Gleiche Vorzeichen ergeben Plus.':'Verschiedene Vorzeichen ergeben Minus.'}`,'sign'];
+    return [`${val} Zähler und Nenner sind vertauscht: Die Zahl, die geteilt wird, steht im Bruch oben.`+(s!==t.s?' Und prüfe das Vorzeichen.':''),'swap'];
+  },
+  check(t){
+    if(t.sel.size!==3)return;
+    const bs=$$('#stage .opt'),bad=[...t.sel].find(i=>!t.cards[i][2]);
+    if(bad==null){bs.forEach((b,i)=>{b.disabled=true;if(t.cards[i][2])b.classList.add('ok')});
+      return solved(`Richtig sind ${t.cards.filter(c=>c[2]).map(c=>dv(c[0],c[1])).join(', ')}. Alle ergeben ${sfr(t.s,t.n,t.d)}, manche erst nach dem Kürzen.`)}
+    const el=bs[bad];el.classList.remove('on');el.classList.add('bad');el.disabled=true;t.sel.delete(bad);this.count(t);
+    const [msg,pat]=this.why(t,t.cards[bad][0],t.cards[bad][1]);
+    wrong(msg+' Die anderen gewählten Aufgaben bleiben markiert.',el,pat);
+  }},
+ /* ---- pairs: Zuordnen. Stufe 2 mit Vorzeichen und gemischt, Stufe 3 mit Kürzen (zwei Karten pro Topf möglich) ---- */
+ pairs:{
+  q(t){return t.lv===1?(t.rev?'Ziehe jede Divisionsaufgabe in den Topf mit dem passenden Bruch.':'Ziehe jeden Bruch in den Topf mit der passenden Divisionsaufgabe.')+' Achtung: Eine Tafel passt in keinen Topf.'
+    :t.lv===2?'Ziehe jede Karte in den Topf, zu dem sie passt: Bruch zu Divisionsaufgabe und Divisionsaufgabe zu Bruch. Achtung: Eine Karte passt in keinen Topf.'
+    :'Ziehe jede Divisionsaufgabe in den Topf mit dem passenden gekürzten Bruch. In manche Töpfe gehören zwei Aufgaben. Eine Aufgabe passt nirgends.'},
+  tip(t){return t.lv===3?'Schreibe die Divisionsaufgabe als Bruch und kürze vollständig. Dann suche den passenden Topf.'
+    :'Die Zahl vor dem Geteilt-Zeichen wird zum Zähler. Die Zahl dahinter wird zum Nenner.'+(t.lv===2?' Achte auch auf das Vorzeichen, und kürze, wenn es geht.':'')},
+  render(t){      // einheitlich: t.P = Töpfe {html, need}, t.C = Karten {html, pot (−1 = passt nirgends)}
+    if(t.lv===1){const pot=x=>t.rev?fr(...x):dv(...x),tile=x=>t.rev?dv(...x):fr(...x);
+      t.P=t.pairs.map(p=>({html:pot(p),need:1}));t.C=[...t.pairs.map((p,i)=>({html:tile(p),pot:i,v:p})),{html:tile(t.extra[0]),pot:-1,v:t.extra[0]}]}
+    else if(t.lv===2){const F=e=>sfr(e.s,e.n,e.d),D=e=>dv(...e.div),x=t.list[t.ex];
+      t.P=t.list.map(e=>({html:e.potDiv?D(e):F(e),need:1}));
+      t.C=[...t.list.map((e,i)=>({html:e.potDiv?F(e):D(e),pot:i})),{html:x.potDiv?sfr(x.s,x.d,x.n):dv(x.div[1],x.div[0]),pot:-1}]}
+    else{t.P=t.pots.map(([n,d],i)=>({html:fr(n,d),need:t.cards.filter(c=>c[2]===i).length}));
+      t.C=[...t.cards.map(([a,b,i])=>({html:dv(a,b),pot:i,a,b})),{html:dv(...t.extra),pot:-1,a:t.extra[0],b:t.extra[1]}]}
+    t.got=t.P.map(()=>0);
+    return `<div class="row">${t.P.map((p,i)=>`<div class="pot" data-slot="${i}"><span>${p.html}</span></div>`).join('')}</div>
+    <div class="tray">${shuffle(range(t.C.length)).map(i=>`<button class="drag tile${t.lv>1?' word':''}" data-val="${i}">${t.C[i].html}</button>`).join('')}</div>`;
+  },
+  drop(t,el,slot){
+    const j=+slot.dataset.slot,c=t.C[+el.dataset.val];
+    if(!(j>=0)||slot.classList.contains('full'))return;
+    if(c.pot===j){place(el,slot);t.got[j]++;if(t.got[j]>=t.P[j].need)slot.classList.add('full');
+      if(t.got.every((g,i)=>g>=t.P[i].need))solved(t.lv===3?'Jede Divisionsaufgabe lässt sich als Bruch schreiben und kürzen. Verschiedene Aufgaben können denselben Bruch ergeben.':'Jede Divisionsaufgabe lässt sich als Bruch schreiben.');
+      return}
+    const [msg,pat]=this.why(t,c,j);wrong(msg,el,pat);
+  },
+  why(t,c,j){
+    if(t.lv===1){const a=c.v,b=t.pairs[j],q=t.rev?a:b;
+      return a[0]===b[1]&&a[1]===b[0]?[`Zähler und Nenner sind vertauscht. Bei ${dv(...q)} wird die ${q[0]} geteilt, sie steht im Bruch oben.`,'swap']
+        :['Das passt nicht zusammen. Die Zahl vor dem Geteilt-Zeichen wird zum Zähler, die Zahl dahinter zum Nenner.','']}
+    if(t.lv===2){
+      if(c.pot<0)return ['Diese Karte passt in keinen Topf: Zähler und Nenner sind vertauscht. Die Zahl vor dem Geteilt-Zeichen gehört in den Zähler.','swap'];
+      const e=t.list[j],f=t.list[c.pot];
+      if(f.n===e.n&&f.d===e.d)return ['Die Zahlen stimmen, aber das Vorzeichen nicht. Gleiche Vorzeichen ergeben Plus, verschiedene ergeben Minus.','sign'];
+      if(!f.potDiv&&Math.abs(f.div[0])!==f.n)return [`${dv(...f.div)} ergibt gekürzt ${sfr(f.s,f.n,f.d)}. Kürze zuerst, dann suche den passenden Topf.`,'red'];
+      return ['Das passt nicht zusammen. Die Zahl vor dem Geteilt-Zeichen wird zum Zähler, die Zahl dahinter zum Nenner.',''];
+    }
+    const g=gcd(c.a,c.b),[n,d]=t.pots[j],val=`${dv(c.a,c.b)} = ${fr(c.a,c.b)}${g>1?` = ${fr(c.a/g,c.b/g)}`:''}.`;
+    if(c.pot<0)return [`${val} Das ist mehr als ein Ganzes: Zähler und Nenner sind vertauscht. Diese Aufgabe passt in keinen Topf.`,'swap'];
+    return [`${val} Das gehört nicht in den Topf ${fr(n,d)}.`,''];
+  }},
+ /* ---- situ: Sachsituation. Stufe 1 mit Bild, Stufe 2 nur Text, Stufe 3 Eingabe mit überflüssiger Zahl oder rückwärts ---- */
+ situ:{
+  text(t){const [pl,g]=FOOD[t.w],m=t.m,p=t.p;
+    if(t.lv===2)return [`Für ${p} Kinder liegen ${m} ${pl} bereit. Alle sollen gleich viel bekommen.`,`${m} ${pl}, ${p} hungrige Kinder. Jedes Kind soll gleich viel bekommen.`,
+      `${p} Kinder teilen sich ${m} ${pl} gerecht.`,`Am Kiosk gibt es heute nur noch ${m} ${pl}. ${p} Kinder wollen etwas davon, und alle bekommen gleich viel.`][t.tpl];
+    if(t.kind==='back')return `Jedes Kind hat ${fr(m,p)} ${g} bekommen. Es waren ${p} Kinder, und alles wurde gerecht verteilt.`;
+    return [`Am Kiosk stehen ${t.x} Kinder. ${p} von ihnen teilen sich ${m} ${pl} gerecht.`,`${m} ${pl} kosten zusammen ${t.x} Euro. ${p} Kinder teilen sie gerecht.`,
+      `In der Kiste liegen ${t.x} ${pl}. ${m} davon werden gerecht an ${p} Kinder verteilt.`][t.tpl];
+  },
+  q(t){const [pl,g]=FOOD[t.w];
+    if(t.lv===1)return `${t.m} ${pl} werden gerecht an ${t.p} Kinder verteilt. Welchen Anteil ${g} bekommt jedes Kind? Ziehe die passende Tafel auf den Teller.`;
+    if(t.lv===2)return `${this.text(t)} Welchen Anteil ${g} bekommt jedes Kind? Ziehe die passende Tafel auf den Teller.`;
+    return this.text(t)+(t.kind==='back'?` Wie viele ${pl} waren es? Tippe die Zahl ein.`:` Welchen Anteil ${g} bekommt jedes Kind? Tippe den Bruch ein.`)},
+  tip(t){
+    if(t.lv===3&&t.kind==='back')return `${fr(t.m,t.p)} bedeutet „☐ geteilt durch ${t.p}“. Wie viele Ganze wurden an die ${t.p} Kinder verteilt?`;
+    if(t.lv===3)return 'Schreibe die Situation als Divisionsaufgabe: Wie viele Ganze werden an wie viele Kinder verteilt? Zahlen, die damit nichts zu tun haben, brauchst du nicht.';
+    return `Stell dir vor, jedes Ganze wird in ${t.p} gleich große Stücke geschnitten, und jedes Kind nimmt sich von jedem Ganzen ein Stück.`;
+  },
+  menu:t=>`<div class="menu">${whole(t.w).repeat(t.m)}<span class="op">für</span>${range(t.p).map(i=>esser(i)).join('')}</div>`,
+  render(t){
+    t.hint=0;
+    if(t.lv===3)return (t.kind==='back'?`<div class="row"><span class="q">Anzahl ${FOOD[t.w][0]}:</span>${fld('cnt',1)}</div>`:`<div class="row">${fin()}</div>`)+pad(false);
+    const o=shuffle([[fr(t.m,t.p),''],[fr(t.p,t.m),'swap'],[fr(1,t.p),'one'],[t.m,'cnt'],['Geht nicht','no']]);
+    return `<div class="row">${t.lv===1?this.menu(t):''}<div class="dish" data-slot="dish">Tafel hier ablegen</div></div>
+    <div class="tray">${o.map(x=>`<button class="drag tile${x[1]==='no'?' word':''}" data-val="${x[1]}">${x[0]}</button>`).join('')}</div>`;
+  },
+  why(t){const pl=FOOD[t.w][0];return {
+    swap:`${fr(t.p,t.m)} wäre mehr als ein Ganzes. Es gibt aber weniger ${pl} als Kinder. Geteilt werden die ${t.m} ${pl}, also steht die ${t.m} oben.`,
+    one:`${fr(1,t.p)} bekäme jedes Kind, wenn nur ein Ganzes verteilt würde. Hier sind es ${t.m}.`,
+    cnt:`Jedes Kind bekommt ${t.m} Stücke, wenn jedes Ganze in ${t.p} Stücke geschnitten wird. Aber jedes Stück ist nur ${fr(1,t.p)}. Gefragt ist der Anteil.`,
+    no:`Mit ganzen Zahlen geht ${dv(t.m,t.p)} nicht auf. Mit Brüchen geht es: Schneide jedes Ganze in ${t.p} gleich große Stücke.`}},
+  drop(t,el,slot){
+    const v=el.dataset.val;
+    if(!v){slot.textContent='';place(el,slot);slot.classList.add('open');
+      return solved(`${dv(t.m,t.p)} = ${fr(t.m,t.p)}. Weniger ${FOOD[t.w][0]} als Kinder, also bekommt jedes weniger als ein Ganzes.`)}
+    wrong(this.why(t)[v],el,v==='swap'?'swap':'');
+  },
+  check(t,v){
+    const pl=FOOD[t.w][0],m=t.m,p=t.p;
+    if(t.kind==='back'){const x=v.cnt;
+      if(x==null)return needAll();
+      if(x===m)return solved(`${dv(m,p)} = ${fr(m,p)}. Es waren ${m} ${pl}.`);
+      return wrong(x===0?'Bei 0 Ganzen bekäme niemand etwas.':`Wären es ${x} Ganze gewesen, hätte jedes Kind ${dv(x,p)} = ${fr(x,p)} bekommen. Gesucht ist die Zahl, bei der ${fr(m,p)} herauskommt.`);
+    }
+    const j=judge(v.top,v.bot,m,p),w=this.why(t);
+    if(j==='empty')return needAll();
+    if(j==='ok')return solved(`${dv(m,p)} = ${fr(m,p)}. Die Zahl ${t.x} brauchte man nicht.`);
+    if(j==='red')return redHint(t,`${frv(v.top,v.bot)} hat den richtigen Wert, ist aber noch nicht vollständig gekürzt.`);
+    if(j==='swap')return wrong(w.swap,null,'swap');
+    wrong(v.top===t.x||v.bot===t.x?`Die Zahl ${t.x} brauchst du hier nicht. Es zählt nur: ${m} ${pl} werden an ${p} Kinder verteilt.`
+      :v.top===1&&v.bot===p?w.one:'Wie viele Ganze werden an wie viele Kinder verteilt? Daraus wird die Divisionsaufgabe und der Bruch.');
+  },
+  quick(t){
+    if(t.p>6)return null;
+    const w=this.why(t);
+    return {q:`${t.m} ${FOOD[t.w][0]} für ${t.p} Kinder. Welchen Anteil ${FOOD[t.w][1]} bekommt jedes?`,fig:this.menu(t),w:t.w,
+      opts:[[fr(t.m,t.p),''],[fr(t.p,t.m),w.swap,'swap'],[fr(1,t.p),w.one],[t.m,w.cnt],['Geht nicht',w.no]]};
+  }},
+ /* ---- streit: Wer hat recht? Stufe 3 danach mit Begründung ---- */
+ streit:{
+  q:t=>`${t.m} ${FOOD[t.w][0]} werden gerecht an ${t.p} Kinder verteilt. ${t.A} und ${t.B} streiten sich. Wer hat recht?`,
+  tip:t=>`Es gibt zwei richtige Sichtweisen: ${fr(1,t.p)} ${vonAllen(t.m,t.w)}, oder ${fr(t.m,t.p)} von einem einzigen Ganzen. Prüfe bei jedem Satz, wovon der Anteil genommen wird.`,
+  claims:t=>[CLAIM[t.ca](t.m,t.p,t.w),CLAIM[t.cb](t.m,t.p,t.w)],
+  answer(t){const [a,b]=this.claims(t);return a.ok&&b.ok?'both':a.ok?'A':b.ok?'B':'none'},
+  render(t){
+    const [a,b]=this.claims(t);
+    return `<div class="row"><div class="menu">${whole(t.w).repeat(t.m)}<span class="op">für</span>${range(t.p).map(i=>esser(i+2)).join('')}</div></div>
+    <div class="claims"><div class="bubble"><span class="who">${esser(1)}${t.A}</span><p>„${a.txt}“</p></div><div class="bubble"><span class="who">${esser(4)}${t.B}</span><p>„${b.txt}“</p></div></div>
+    <div class="opts">${[['A',t.A],['B',t.B],['both','Beide'],['none','Keiner']].map(([k,l])=>`<button class="opt word" data-act="pick" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="screen" id="why" hidden></div>`;
+  },
+  pick(t,el){
+    const [a,b]=this.claims(t),ok=this.answer(t),v=el.dataset.v,expl=`${t.A}: ${a.why} ${t.B}: ${b.why}`;
+    if(v===ok){el.classList.add('ok');$$('#stage .opts .opt').forEach(x=>x.disabled=true);return t.lv<3?solved(expl):this.ask(t)}
+    el.classList.add('bad');el.disabled=true;
+    const exp={A:[1,0],B:[0,1],both:[1,1],none:[0,0]}[v],k=exp[0]!==a.ok?0:1,c=[a,b][k];      // erste Aussage, die anders beurteilt wurde
+    wrong(`Schau dir an, was ${[t.A,t.B][k]} sagt. ${c.why}`,el,[t.ca,t.cb][k]==='F2'?'swap':'');
+  },
+  ask(t){      // Stufe 3: Begründung zur ersten falschen Aussage, sonst zur ersten Aussage
+    const [a,b]=this.claims(t),k=!a.ok?0:!b.ok?1:0,R=REASON[[t.ca,t.cb][k]](t.m,t.p,t.w),ok=[a,b][k].ok;
+    t.opts=shuffle([[R.ok,''],...R.bad]);
+    const w=$('#why');w.hidden=false;
+    w.innerHTML=`<p class="q">Richtig! Begründe jetzt: Warum stimmt${ok?',':' nicht,'} was ${[t.A,t.B][k]} sagt? Tippe die passende Begründung an.</p>
+      <div class="reasons">${t.opts.map((o,i)=>`<button class="opt" data-act="reason" data-v="${i}">${o[0]}</button>`).join('')}</div>`;
+    say('good','Richtig entschieden','Jetzt fehlt noch die Begründung.');
+    w.scrollIntoView({behavior:'smooth',block:'start'});
+  },
+  reason(t,el){
+    const o=t.opts[+el.dataset.v];
+    if(!o[1]){el.classList.add('ok');$$('#why .opt').forEach(b=>b.disabled=true);const [a,b]=this.claims(t);return solved(`${t.A}: ${a.why} ${t.B}: ${b.why}`)}
+    el.classList.add('bad');el.disabled=true;wrong(`Diese Begründung passt nicht. ${o[1]}`,el);
+  }},
+ /* ---- sortq: ohne Rechnen sortieren. Stufe 2 drei Regale, Stufe 3 Lücken füllen ---- */
+ sortq:{
+  q(t){return t.lv===1?'Bei welchen Kisten bekommt jeder Esser weniger als ein Ganzes? Sortiere in die beiden Regale, ohne zu rechnen.'
+    :t.lv===2?'Sortiere jede Kiste in das passende Regal, ohne zu rechnen: Bekommt jeder Esser weniger als ein Ganzes, genau ein Ganzes oder mehr?'
+    :'Fülle jede Lücke mit einer passenden Zahl. Oft gibt es mehrere richtige Lösungen. Tippe ein Feld an und dann die Ziffern.'},
+  tip:()=>'Vergleiche die beiden Zahlen: Die erste (oder obere) Zahl sagt, wie viele Ganze verteilt werden. Die zweite (oder untere) sagt, an wie viele Esser.',
+  COND:{A:'weniger als ein Ganzes',B:'mehr als ein Ganzes',C:'genau ein Ganzes',D:'mehr als ein Ganzes',E:'weniger als ein Ganzes'},
+  expr(r,i){const F=fld('r'+i,i===0,'sm');return r.k==='A'?`${r.a} : ${F}`:r.k==='B'||r.k==='E'?`${F} : ${r.a}`:r.k==='C'?fr(F,r.a):fr(r.a,F)},
+  render(t){
+    if(t.lv===3)return `<div class="srows">${t.rows.map((r,i)=>`<div class="srow" id="sr${i}"><span>${this.expr(r,i)}</span><span class="cond">ergibt ${this.COND[r.k]}</span></div>`).join('')}</div>${pad(false)}`;
+    const bins=t.lv===1?[['yes','Weniger als ein Ganzes'],['no','Ein Ganzes oder mehr']]:[['lt','Weniger als ein Ganzes'],['eq','Genau ein Ganzes'],['gt','Mehr als ein Ganzes']];
+    return `<div class="bins${t.lv===2?' three':''}">${bins.map(([k,h])=>`<div class="bin" data-slot="${k}"><h3>${h}</h3></div>`).join('')}</div>
+    <div class="tray">${shuffle(range(t.cards.length)).map(i=>{const c=t.cards[i];return `<button class="drag tile" data-val="${i}">${c[2]?fr(c[0],c[1]):dv(c[0],c[1])}</button>`}).join('')}</div>`;
+  },
+  why(a,b,f){
+    const yes=a<b,pre=(f?`${fr(a,b)} bedeutet ${dv(a,b)}, also `:`Bei ${dv(a,b)} gibt es `)+`${a===1?'ein Ganzes':a+' Ganze'} für ${b} Esser. `;
+    return pre+(yes?'Das sind weniger Ganze als Esser, also bekommt jeder weniger als ein Ganzes.'
+      :a===b?'Jeder bekommt genau ein Ganzes.':'Das sind mehr Ganze als Esser, also bekommt jeder mehr als ein Ganzes.');
+  },
+  drop(t,el,slot){
+    const [a,b,f]=t.cards[el.dataset.val],s=slot.dataset.slot;
+    const ok=t.lv===1?(s==='yes')===(a<b):s===(a<b?'lt':a===b?'eq':'gt');
+    if(ok){place(el,slot);if(!$('#stage .tray .drag'))solved(t.lv===1?'Weniger Ganze als Esser: Das Ergebnis ist kleiner als 1.'
+      :'Weniger Ganze als Esser: kleiner als 1. Gleich viele: genau 1. Mehr Ganze als Esser: größer als 1.');return}
+    wrong(this.why(a,b,f),el);
+  },
+  okRow:(r,x)=>r.k==='A'||r.k==='B'?x>r.a:r.k==='C'?x===r.a:r.k==='D'?x>0&&x<r.a:x<r.a,
+  rowWhy(r,x){
+    const a=r.a,G1=n=>n===1?'1 Ganzes':n+' Ganze';
+    if((r.k==='A'||r.k==='D')&&x===0)return 'Durch 0 kann man nicht teilen.';
+    return r.k==='A'?`Bei ${a} : ${x} gibt es ${G1(a)} für ${x} Esser. Das ist ${x===a?'genau ein':'mehr als ein'} Ganzes für jeden. Für weniger als ein Ganzes brauchst du mehr Esser als Ganze.`
+      :r.k==='B'?`Bei ${x} : ${a} gibt es ${G1(x)} für ${a} Esser. Für mehr als ein Ganzes brauchst du mehr Ganze als Esser.`
+      :r.k==='C'?`${fr(x,a)} bedeutet ${x} : ${a}. Genau ein Ganzes bekommt jeder, wenn es gleich viele Ganze wie Esser gibt.`
+      :r.k==='D'?`${fr(a,x)} bedeutet ${a} : ${x}. Für mehr als ein Ganzes muss unten eine kleinere Zahl stehen als oben.`
+      :`Bei ${x} : ${a} gibt es ${G1(x)} für ${a} Esser. Für weniger als ein Ganzes brauchst du weniger Ganze als Esser.`;
+  },
+  check(t,v){
+    const open=t.rows.map((r,i)=>i).filter(i=>!$('#sr'+i).classList.contains('ok'));
+    if(open.some(i=>v['r'+i]==null))return needAll();
+    for(const i of open){const r=t.rows[i],x=v['r'+i];
+      if(this.okRow(r,x)){$('#sr'+i).classList.add('ok');const f=$(`#stage [data-f="r${i}"]`);f.disabled=true;f.classList.remove('on')}}
+    const bad=open.find(i=>!this.okRow(t.rows[i],v['r'+i]));
+    if(bad==null)return solved('Weniger Ganze als Esser: kleiner als 1. Gleich viele: genau 1. Mehr Ganze als Esser: größer als 1.');
+    const x=v['r'+bad];padSet($('#stage'),'r'+bad,null);padFocus($(`#stage [data-f="r${bad}"]`),$('#stage'));
+    wrong(this.rowWhy(t.rows[bad],x)+(open.length>1?' Die richtigen Zeilen sind grün markiert.':''));
+  },
+  quick(t){
+    if(!t.cards)return null;
+    /* Je Kiste ein Zettel: „Bei welcher Kiste bekommt jeder … ?“ mit der Kiste und vier Kisten aus anderen Regalen */
+    const cat=(a,b)=>Math.sign(a-b),Q={'-1':'weniger als ein Ganzes','0':'genau ein Ganzes','1':'mehr als ein Ganzes'};
+    return t.cards.map(([a,b,f])=>{
+      const c=cat(a,b),h=(x,y,g)=>g?fr(x,y):dv(x,y),seen=new Set([a+':'+b]),o=[[h(a,b,f),'']];
+      const add=(x,y,g)=>{if(x<1||y<1||seen.has(x+':'+y)||cat(x,y)===c)return;seen.add(x+':'+y);o.push([h(x,y,g),this.why(x,y,g)])};
+      add(b,a,f);
+      for(let n=0;o.length<5&&n<300;n++){const y=rnd(2,12);add(c<0?rnd(y,12):rnd(1,12),y,Math.random()<.5)}
+      return {q:`Bei welcher Kiste bekommt jeder ${Q[c]}? Tippe sie an.`,opts:o};
+    });
+  }}
+};
+
+/* ============ SPIELLOGIK (aus Wildermuth Bruchzauber 0.2, erweitert um Stufen und Rückmeldefenster) ============ */
+let G=null,sel=null,drag=null,teacher=false;
+let Bz=null,noTimer=false;                                   // laufender Endgegner; Lehrermodus: Zeit abgeschaltet
+const W={x:60,tx:null,dir:1,ph:0,ts:0,raf:0,spots:[],keys:{l:false,r:false}};   // Zustand der Bewegung in der Szene
+const SPEED=270,EXIT=736;                                    // Gehtempo (Einheiten pro Sekunde), Stelle der Tür
+const PRAISE=['Richtig!','Genau so.','Stimmt!','Lecker. Das passt.'];
+const LV='Level 3';
+function show(id){document.querySelectorAll('.wrap>.screen').forEach(s=>s.hidden=s.id!==id);scrollTo(0,0)}
+function place(el,slot){el.classList.remove('drag','sel','lift');slot.append(el);sel=null}
+function say(kind,label,html,m=$('#msg')){m.className='msg '+kind;m.innerHTML=`<b>${label}</b>${html}`}
+
+/* ---- Rückmeldefenster mitten im Spiel: good = richtig, bad = Fehler, tip = Hinweis ohne Lebensverlust ---- */
+let popCb=null;
+const popOpen=()=>!$('#pop').hidden;
+function pop(kind,title,html,btn,cb){
+  $('#pop').className='pop '+kind;$('#popI').textContent=kind==='good'?'✓':kind==='bad'?'✗':'!';
+  $('#popT').textContent=title;$('#popB').innerHTML=html;$('#popBtn').textContent=btn;popCb=cb||null;
+  $('#pop').hidden=false;$('#popBtn').focus({preventScroll:true});
+}
+function closePop(){if(!popOpen())return;$('#pop').hidden=true;const c=popCb;popCb=null;if(c)c()}
+$('#popBtn').onclick=closePop;
+const hint=(title,html)=>pop('tip',title,html,'Verbessern');
+const P=h=>!h?'':/^<(p|div)[\s>]/.test(h.trim())?h:`<p>${h}</p>`;      // Text als Absatz, fertige Absätze bleiben
+
+function renderHome(flash){
+  const s=store.get(),won=s.won||0;
+  $('#rose').innerHTML=`<svg viewBox="-36 -88 72 92" width="140" height="180" role="img" aria-label="Der Maskierte Magier">${WIZ}</svg>`;
+  $('#home').innerHTML=`<p><b>So geht es:</b> Geh durch die Orte der Mensa und löse an jeder Markierung eine Aufgabe. Am sechsten Ort wartet ein Endgegner. Wer ihn besiegt, schaltet die nächste Stufe frei.</p>`;
+  $('#stufen').innerHTML=STUFEN.map(S=>{
+    const open=teacher||S.n<=won+1,b=(s.best||{})[S.n];
+    return `<li><button class="room" data-lv="${S.n}"${open?'':' disabled'}><span class="no">${S.n}</span><span class="t"><b>${S.name}</b><span>${open?S.info
+      :`Wird freigeschaltet, wenn du als ${STUFEN[S.n-2].name} den Snackomat besiegst.`}</span></span>${b?stars(starsFor(b.e+b.t)):open?'':'<span class="lockt">gesperrt</span>'}</button></li>`;
+  }).join('');
+  $('#codebox').innerHTML=`<span>Dein Mensa-Code</span><strong>${makeCode(s)}</strong><span class="dim">Schreibe ihn auf. Er ändert sich, wenn du spielst. Mit ihm kannst du deinen Spielstand auf jedem Tablet laden.</span>`;
+  $('#reset').textContent='Neuer Spieler';$('#reset').dataset.armed='';
+  $('#loadbox').hidden=true;$('#loadGo').dataset.armed='';$('#loadIn').value='';
+  $('#homeMsg').hidden=!flash;$('#homeMsg').innerHTML=flash||'';
+  show('map');
+}
+function story(eye,title,text,btn,cb){
+  $('#stEye').textContent=eye;$('#stTitle').textContent=title;
+  $('#stText').innerHTML=paras(text);
+  $('#stBtn').textContent=btn;$('#stBtn').onclick=cb;show('story');
+}
+const slotType=(slot,lv)=>typeof slot.type==='function'?slot.type(lv):slot.type;
+function startLevel(skip,keep,lv){      // keep = Zähler eines Durchlaufs, der wegen 0 Leben neu beginnt
+  lv=lv||(keep&&keep.lv)||1;
+  const L=LEVEL,S=STUFEN[lv-1],tasks=[],used=new Set();
+  L.groups.forEach((g,gi)=>g.tasks.forEach((slot,ti)=>{
+    const {pool,type,...base}=slot,ty=slotType(slot,lv),list=pool[lv-1];let v,key,n=0;
+    do{v=pickOne(list);key=ty+JSON.stringify([v.m,v.p,v.n,v.d,v.a,v.b,v.k])}while(used.has(key)&&++n<30);   // keine doppelten Zahlen im selben Durchlauf
+    used.add(key);
+    tasks.push({...base,...v,type:ty,lv,g:gi,last:ti===g.tasks.length-1});
+  }));
+  Bz=null;
+  G={L,lv,S,tasks,i:0,p:0,errs:keep?keep.errs:0,tips:keep?keep.tips:0,T:teacher||!!(keep&&keep.T),lives:S.lives,tipsLeft:S.tips,done:true,mode:'walk',tries:keep&&keep.tries||0};
+  if(skip)return;
+  stat(lv,x=>x.n++);      // jeder Start der Stufe ist ein Versuch, auch nach „Keine Leben mehr“
+  const go=()=>{show('play');enterPlace(0)};
+  keep?go():story(`${LV} · Stufe ${lv} · ${S.name}`,L.place,[...L.intro[lv-1],`Du hast ${S.lives} Leben und ${S.tips} Tipps.`],L.startBtn,go);
+}
+const placeDone=p=>G.tasks.every((t,j)=>t.g!==p||j<G.i);
+function hud(){
+  if(!G||G.fin)return;
+  const n=G.tasks.length,walk=G.mode!=='task';
+  $('#locks').innerHTML=G.L.groups.map((g,i)=>`<span class="${placeDone(i)?'open':i===G.p?'now':''}"></span>`).join('')+'<span></span>';      // 6. Punkt = Endgegner
+  $('#lives').innerHTML=hearts(G.lives);
+  $('#count').textContent=(walk?`${G.i} von ${n} Aufgaben gelöst`:`Aufgabe ${G.i+1} von ${n}`)+` · ${G.S.name}`;
+  $('#tipBtn').textContent=`Tipp (${G.tipsLeft} übrig)`;$('#tipBtn').hidden=walk;
+  $('#skip').hidden=!teacher||walk;
+  if(Bz)bossHud();
+}
+
+/* ---- Bewegung: Ort betreten, Szene zeichnen, gehen, ankommen ---- */
+function enterPlace(p){
+  const g=G.L.groups[p],name=g.name;
+  const mine=range(G.tasks.length).filter(i=>G.tasks[i].g===p);
+  G.p=p;G.mode='walk';G.done=true;
+  W.spots=mine.map((i,j)=>({i,x:Math.round(210+(j+.5)*420/mine.length)}));
+  const prev=W.spots.filter(s=>s.i<G.i).pop();
+  W.x=prev?prev.x:60;W.tx=null;W.dir=1;W.ph=0;
+  $('#placeName').textContent=`Ort ${p+1} von ${G.L.groups.length+1} · ${name}`;
+  $('#sceneBox').innerHTML=`<svg viewBox="0 0 800 300" role="img" aria-label="${name}">${BG[g.bg]()}<g id="door"></g><g id="spots"></g><g id="kid">${KID}</g></svg>`;
+  $('#scene').textContent=g.story;$('#voice').textContent=g.voice||'';
+  $('#q').innerHTML='';$('#stage').innerHTML='';
+  layout();
+}
+/* limit = die Stelle, bis zu der die Figur gehen darf: nächste offene Markierung oder (Ort fertig) die Tür */
+function limit(){const s=W.spots.find(s=>s.i>=G.i);return s?s.x:EXIT}
+function layout(){        // schaltet zwischen Gehen (Szene sichtbar) und Aufgabe (Szene verborgen) um
+  const walk=G.mode==='walk';
+  $('#sceneWrap').hidden=!walk;
+  if(walk){$('#msg').className='msg';$('#msg').innerHTML='';$('#q').innerHTML='';$('#stage').innerHTML=''}
+  hud();scrollTo(0,0);
+  if(walk){drawScene();W.ts=0;if(!W.raf)W.raf=requestAnimationFrame(tick)}
+}
+function drawKid(el,x,dir,ph){
+  el.setAttribute('transform',`translate(${x.toFixed(1)},264) scale(${dir*1.25},1.25)`);
+  const a=Math.sin(ph)*26;
+  el.querySelector('.la').setAttribute('transform',`rotate(${a.toFixed(1)} -3 -26)`);
+  el.querySelector('.lb').setAttribute('transform',`rotate(${(-a).toFixed(1)} 4 -26)`);
+}
+function drawScene(){
+  const open=limit()===EXIT;
+  $('#spots').innerHTML=W.spots.map(s=>spot(s.x,s.i<G.i?'done':s.i===G.i?'act':'wait')).join('');
+  $('#door').innerHTML=door(open);
+  $('#walkHint').textContent=open?'Die Tür ist offen. Geh hindurch: Tippe auf die Tür oder halte die Pfeiltaste → gedrückt.'
+    :'Geh zur leuchtenden Markierung: Tippe auf die Stelle oder halte die Pfeiltaste → gedrückt.';
+  drawKid($('#kid'),W.x,W.dir,0);
+}
+function tick(ts){
+  W.raf=0;
+  if(!G||G.mode!=='walk'||$('#play').hidden)return;
+  const dt=W.ts?Math.min(.05,(ts-W.ts)/1000):0,lim=limit();W.ts=ts;
+  let v=0;
+  if(W.keys.l!==W.keys.r){v=W.keys.r?1:-1;W.tx=null}
+  else if(W.tx!=null){const d=Math.min(W.tx,lim)-W.x;if(Math.abs(d)<2){if(W.tx>=lim)W.x=lim;W.tx=null}else v=Math.sign(d)}
+  if(v){W.dir=v;W.x=Math.max(40,Math.min(lim,W.x+v*SPEED*dt));W.ph+=dt*11}else W.ph=0;
+  drawKid($('#kid'),W.x,W.dir,W.ph);
+  if(W.x>=lim-.5){W.tx=null;return arrive()}
+  W.raf=requestAnimationFrame(tick);
+}
+function arrive(){
+  if(W.spots.some(s=>s.i>=G.i)){G.mode='task';return renderTask()}      // Markierung erreicht: Aufgabe öffnen
+  if(G.p<G.L.groups.length-1)return enterPlace(G.p+1);                    // Tür erreicht: nächster Ort
+  bossIntro();
+}
+function renderTask(){
+  const t=G.tasks[G.i],T=TYPES[t.type];
+  G.done=G.tipped=false;sel=null;
+  $('#q').innerHTML=t.q||T.q(t);
+  $('#stage').innerHTML=T.render(t);
+  setTimeout(()=>{if(G&&G.tasks[G.i]===t&&!popOpen())autoFocus($('#stage'))},0);
+  $('#msg').className='msg';$('#msg').innerHTML='';
+  layout();
+}
+function wrong(html,el,pat){      // Fehlversuch: zählt für die Sterne, kostet ein Leben und wird für den Code gemerkt
+  G.errs++;G.lives--;mark(G.tasks[G.i]&&G.tasks[G.i].type,pat);stat(G.lv,x=>x.e++);
+  if(el){el.classList.remove('shake');void el.getBoundingClientRect();el.classList.add('shake')}
+  if(G.lives<=0)return outOfLives(html);
+  hud();$('#msg').className='msg';$('#msg').innerHTML='';
+  pop('bad','Noch nicht · ein Leben weniger',P(html)+`<p>${hearts(G.lives,0,true)}</p>`,'Nochmal');
+}
+function outOfLives(html){
+  const keep={errs:G.errs,tips:G.tips,T:G.T,tries:G.tries,lv:G.lv};G.mode='out';
+  story(`${LV} · ${G.L.place}`,'Keine Leben mehr',[`Der Hinweis zu deinem letzten Versuch: ${html.replace(/<\/?p>/g,' ').replace(/<div class="figbox">[\s\S]*?<\/div>/,'')}`,
+    `Deine ${G.S.lives} Leben sind aufgebraucht. Die Stufe beginnt von vorn, mit neuen Aufgaben und wieder ${G.S.lives} Leben und ${G.S.tips} Tipps.`],'Stufe neu beginnen',()=>startLevel(false,keep));
+}
+function solved(extra,label){      // extra = Erklärung zur Lösung (HTML). Das Fenster zeigt sie, danach geht es zu Fuß weiter.
+  const t=G.tasks[G.i];G.done=true;
+  document.activeElement?.blur?.();
+  progress(G.i+1);
+  const go=()=>{if(!G||G.tasks[G.i]!==t)return;G.i++;G.mode='walk';layout()};
+  if(label==='Übersprungen')return go();
+  pop('good',label||PRAISE[G.i%PRAISE.length],P(extra)+(t.last?`<p class="dim">${G.L.groups[t.g].done}</p>`:''),'Weiter',go);
+}
+function finish(){
+  const lv=G.lv,S=G.S,nx=STUFEN[lv];
+  rec(s=>{s.won=Math.max(s.won||0,lv);s.best=s.best||{};const b=s.best[lv];if(!b||G.errs+G.tips<b.e+b.t)s.best[lv]={e:G.errs,t:G.tips}});
+  G.fin=true;Bz=null;
+  const s=store.get(),open=nx&&(teacher||(s.won||0)>=lv);
+  $('#endEye').textContent=`${LV} · Stufe ${lv} · ${S.name} geschafft`;
+  $('#endTitle').textContent=G.L.endTitle;
+  $('#endStars').innerHTML=stars(starsFor(G.errs+G.tips));
+  $('#endTips').textContent=G.tips;$('#endErrs').textContent=G.errs;
+  $('#endText').innerHTML=paras(G.L.outro);
+  $('#endNew').innerHTML=open?`<b>Neu freigeschaltet:</b> Stufe ${nx.n} · ${nx.name}.`:lv===3?'<b>Du hast alle drei Stufen geschafft.</b> Ab heute bist du Sternekoch der Mensa.':'';
+  $('#endCode').innerHTML=`<span>Dein Mensa-Code</span><strong>${makeCode(s)}</strong><span class="dim">${G.T||teacher?'Lehrermodus: Dieser Durchlauf wird nicht gespeichert.':'Schreibe ihn auf. Mit ihm kannst du deinen Spielstand auf jedem Tablet laden.'}</span>`;
+  $('#next').hidden=!open;if(open){$('#next').textContent=`Weiter als ${nx.name}`;$('#next').onclick=()=>startLevel(false,null,nx.n)}
+  $('#again').onclick=()=>startLevel(false,null,lv);
+  show('end');
+}
+
+/* ============ ENDGEGNER ============ */
+function bossPool(L,lv){      // Kurzaufgaben der Stufe nach Aufgabentyp, je Typ eine Stichprobe von höchstens 30
+  const out={};
+  L.groups.forEach(g=>g.tasks.forEach(slot=>{
+    const ty=slotType(slot,lv),T=TYPES[ty],{pool,type,...base}=slot;
+    if(T.quick)shuffle(pool[lv-1]).slice(0,30).forEach(v=>{
+      const q=T.quick({...base,...v,lv,type:ty});if(q)(out[ty]=out[ty]||[]).push(...[].concat(q));
+    });
+  }));
+  return out;
+}
+function bossIntro(){
+  const b=BOSSES[G.L.boss],n=G.tipsLeft,need=G.S.need;
+  G.mode='boss';G.shields=n;progress(G.tasks.length+1);
+  story(`${LV} · Stufe ${G.lv} · Endgegner`,b.name,[...b.intro,
+    `Wehre ${WORDS[need]} Geschosse ab: Tippe die richtige Antwort an, bevor das Geschoss dich trifft. Ein Treffer oder eine falsche Antwort kostet ein Leben.`
+      +(G.lv===3?' Bei einem Geschoss musst du das Ergebnis selbst ausrechnen und eintippen. Dafür hast du mehr Zeit. Dort muss der Bruch vollständig gekürzt sein.':''),
+    `Du kommst mit ${G.lives} von ${G.S.lives} Leben an. `+(n?`Du hast noch ${n} ${n===1?'Tipp':'Tipps'} übrig. Daraus ${n===1?'wird ein Schutzschild':'werden '+n+' Schutzschilde'}: Sie fangen die ersten Treffer ab.`
+    :'Du hast keinen Tipp mehr übrig, also gibt es diesmal keine Schutzschilde.')],'Los geht’s',bossStart);
+}
+function bossStart(){
+  const b=BOSSES[G.L.boss];
+  Bz={b,need:G.S.need,pool:bossPool(G.L,G.lv),bag:[],lives:G.lives,shields:G.shields,solved:0,state:'',t:0,limit:1,ts:0,raf:0,last:null,cur:[],
+      inpAt:G.lv===3?rnd(1,G.S.need-2):-1,inp:null};
+  $('#arena').innerHTML=`<svg viewBox="0 70 800 230" role="img" aria-label="${b.name} wirft mit Essen">${BG[b.bg]()}
+    <g transform="translate(560,250) scale(.85)">${WIZ}</g><g transform="translate(690,262) scale(1.15)">${snack('#b06cff')}</g>
+    <circle id="bshield" cx="100" cy="212" r="64" fill="#2a6fe822" stroke="#2a6fe8" stroke-width="4" stroke-dasharray="10 6"/><g id="bkid">${KID}</g>
+    <g id="proj"></g></svg>`;
+  drawKid($('#bkid'),100,1,0);
+  show('boss');bossNext();
+}
+function bossHud(){
+  const z=Bz;
+  $('#blives').innerHTML=hearts(z.lives,z.shields);
+  $('#bcount').textContent=`${z.solved} von ${z.need} Geschossen abgewehrt · ${G.S.name}`;
+  $('#bplace').textContent=`Ort ${G.L.groups.length+1} von ${G.L.groups.length+1} · Endgegner ${z.b.name}`;
+  $('#btime').hidden=$('#bskip').hidden=!teacher;$('#btime').textContent=`Zeit: ${noTimer?'aus':'an'}`;
+  $('#bshield').setAttribute('opacity',z.shields?1:0);
+}
+function bossDraw(){
+  const z=Bz,p=Math.min(1,z.t/z.limit);
+  $('#proj').setAttribute('transform',`translate(${(620-490*p).toFixed(1)},${(170-50*Math.sin(Math.PI*p)).toFixed(1)}) rotate(${(p*540).toFixed(0)})`);
+  $('#proj').setAttribute('opacity',z.state==='fly'?1:0);
+  $('#tfill').style.width=p*100+'%';
+}
+const bossEase=()=>G.S.time*(1+G.S.ease*Math.min(G.tries,Bz.b.easeMax));
+function bossNext(){      // nächstes Geschoss: Typen reihum gemischt, Variante zufällig; Stufe 3: einmal eine Eingabeaufgabe
+  const z=Bz,b=z.b;
+  if(z.solved===z.inpAt&&!z.inpDone){z.inpDone=1;return bossInput()}
+  const types=Object.keys(z.pool);
+  if(!z.bag.length)z.bag=shuffle(types);
+  const ty=z.bag.pop(),list=z.pool[ty];let q;
+  do q=list[Math.random()*list.length|0];while(q===z.last&&list.length>1);
+  z.last=q;z.ty=ty;z.inp=null;z.cur=q.keep?q.opts:shuffle(q.opts);shot(q.w);
+  z.limit=(b.secs[ty]||10)*b.speed[Math.min(z.solved,b.speed.length-1)]*bossEase();
+  $('#bq').innerHTML=q.q;$('#bfig').innerHTML=q.fig||'';
+  $('#bopts').innerHTML=z.cur.map((o,i)=>`<button class="opt${q.pic?' pic':''}" data-o="${i}">${o[0]}</button>`).join('');
+  bossGo();
+}
+function bossInput(){      // Stufe 3: Ergebnis selbst eintippen, vollständig gekürzt
+  const z=Bz;let a,b,n,d,neg=0;
+  if(Math.random()<.5){const v=pickOne(POOLS.negA[2]),r=negOpts(v);a=v.a;b=v.b;n=r.s*r.n;d=r.d;neg=1;z.ty='negq'}
+  else{const v=pickOne(POOLS.red[2]);a=v.n*v.k;b=v.d*v.k;n=v.n;d=v.d;z.ty='red'}
+  z.inp={a,b,n,d};z.cur=[];shot();
+  z.limit=z.b.inSecs*bossEase();
+  $('#bq').innerHTML=`Schreibe ${dv(a,b)} als vollständig gekürzten Bruch. Tippe ihn ein.`;$('#bfig').innerHTML='';
+  $('#bopts').innerHTML=`<div class="binp"><div class="row"><span class="goal">${dv(a,b)}</span><span class="op">=</span>${fin()}</div>${pad(neg,'Abwehren')}</div>`;
+  bossGo();autoFocus($('#bopts'));
+}
+/* Geschoss: das Lebensmittel der Aufgabe (Sachaufgaben) oder ein zufälliges, als ganzes Stück */
+function shot(w){
+  w=w||pickOne(Object.keys(FOOD));const bar=FOOD[w][2]==='bar',W=bar?66:50,H=bar?20:50;
+  $('#proj').innerHTML=whole(w).replace(/^(<svg[^>]*?) style="[^"]*"/,'$1').replace(/^<svg class="fig"/,`<svg x="${-W/2}" y="${-H/2}" width="${W}" height="${H}" style="width:${W}px;height:${H}px"`);
+}
+function bossGo(){const z=Bz;z.t=0;z.ts=0;z.state='fly';bossHud();bossDraw();if(!z.raf)z.raf=requestAnimationFrame(bossTick)}
+function bossTick(ts){
+  const z=Bz;if(!z)return;z.raf=0;
+  if(z.state!=='fly')return;
+  if($('#boss').hidden)z.ts=0;        // Abbrechen-Rückfrage offen: Zeit steht
+  else{
+    if(z.ts&&!noTimer)z.t+=Math.min(.1,(ts-z.ts)/1000);
+    z.ts=ts;bossDraw();
+    if(z.t>=z.limit)return bossMiss(-1);
+  }
+  z.raf=requestAnimationFrame(bossTick);
+}
+function bossHit(i){
+  const z=Bz;z.state='ok';z.solved++;
+  const left=z.need-z.solved;
+  $$('#bopts button').forEach(b=>b.disabled=true);if(i>=0)$$('#bopts .opt')[i].classList.add('ok');
+  const a=$('#arena');a.insertAdjacentHTML('beforeend',`<div class="toast">Abgewehrt! ${left?`Noch ${left} ${left===1?'Geschoss':'Geschosse'}.`:'Das war das letzte!'}</div>`);
+  bossHud();bossDraw();
+  setTimeout(()=>{a.querySelector('.toast')?.remove();if(Bz===z)left?bossNext():finish()},1000);
+}
+function bossMiss(i,txt,pat){      // i = gewählte falsche Antwort, -1 = Geschoss hat getroffen, -2 = falsche Eingabe
+  const z=Bz;z.state='pause';
+  const sh=z.shields>0;sh?z.shields--:z.lives--;G.lives=z.lives;stat(G.lv,x=>x.e++);
+  if(i>=0)mark(z.ty,z.cur[i][2]);else if(i===-2)mark(z.ty,pat);
+  $$('#bopts button').forEach(b=>b.disabled=true);
+  const ok=z.inp?sfr(Math.sign(z.inp.n),Math.abs(z.inp.n),z.inp.d):z.cur.find(o=>!o[1])[0];
+  if(!z.inp){const bs=$$('#bopts .opt');bs[z.cur.findIndex(o=>!o[1])].classList.add('ok');if(i>=0)bs[i].classList.add('bad')}
+  const a=$('#arena');a.classList.remove('shake');void a.getBoundingClientRect();a.classList.add('shake');
+  bossHud();bossDraw();
+  pop('bad',(i===-1?'Getroffen':'Falsch')+(sh?' · ein Schutzschild weniger':' · ein Leben weniger'),
+    P(i===-1?'Das Geschoss war schneller als du.':i===-2?txt:z.cur[i][1])+`<p>Richtig ist: <b>${ok}</b></p><p>${hearts(z.lives,z.shields,!sh)}</p>`,'Weiter',
+    ()=>{if(Bz!==z)return;z.lives>0?bossNext():bossLost()});
+}
+function bossCheck(){      // Eingabeaufgabe prüfen: Beim Endgegner zählt „nicht vollständig gekürzt“ sofort als Fehler
+  const z=Bz,{a,b,n,d}=z.inp,v=padVals($('#bopts')),j=judge(v.top,v.bot,n,d);
+  if(j==='empty')return;
+  if(j==='ok')return bossHit(-1);
+  bossMiss(-2,j==='red'?`${frv(v.top,v.bot)} hat den richtigen Wert, ist aber nicht vollständig gekürzt. Beim Endgegner zählt das als Fehler.`
+    :j==='sign'?'Das Vorzeichen stimmt nicht. Gleiche Vorzeichen ergeben Plus, verschiedene ergeben Minus.'
+    :j==='swap'||j==='swapsign'?`Zähler und Nenner sind vertauscht. Die Zahl, die geteilt wird (${sn(a)}), gehört nach oben.`
+    :`Schreibe zuerst ${dv(a,b)} als Bruch, dann kürze vollständig.`,j==='red'?'red':j==='sign'?'sign':j==='swap'||j==='swapsign'?'swap':'');
+}
+function bossLost(){      // 0 Leben beim Endgegner: Die ganze Stufe beginnt von vorn
+  const z=Bz,b=z.b,keep={errs:G.errs,tips:G.tips,T:G.T,tries:G.tries+1,lv:G.lv};
+  story(`${LV} · Endgegner`,`${b.name} war schneller`,[...b.lose,`Du hast ${z.solved} von ${z.need} Geschossen abgewehrt, aber deine Leben sind aufgebraucht. Die Stufe beginnt von vorn, mit neuen Aufgaben und wieder ${G.S.lives} Leben und ${G.S.tips} Tipps.`
+    +(keep.tries<=b.easeMax?' Beim nächsten Mal fliegen die Geschosse etwas langsamer.':'')],'Stufe neu beginnen',()=>startLevel(false,keep));
+}
+$('#bopts').onclick=e=>{
+  if(!Bz||Bz.state!=='fly'||popOpen())return;
+  if(Bz.inp){const b=e.target.closest('[data-act]');if(!b)return;
+    const act=b.dataset.act;if(act==='fld')padFocus(b,$('#bopts'));else if(act==='key')padKey(b.dataset.k,$('#bopts'));else if(act==='chk')bossCheck();return}
+  const b=e.target.closest('.opt');if(!b)return;
+  const i=+b.dataset.o;Bz.cur[i][1]?bossMiss(i):bossHit(i);
+};
+$('#btime').onclick=()=>{if(teacher){noTimer=!noTimer;bossHud()}};
+$('#bskip').onclick=()=>{if(teacher&&Bz){G.T=true;finish()}};
+
+function drop(el,slot,tap){
+  if(!G||G.done||popOpen())return;
+  if(sel){sel.classList.remove('sel');sel=null}
+  const t=G.tasks[G.i];TYPES[t.type].drop(t,el,slot,tap);
+}
+
+/* ---- Ziehen (Pointer-Events) und Antippen als Alternative ---- */
+const stage=$('#stage');
+stage.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.drag');if(!el||G.done)return;
+  e.preventDefault();
+  const r=el.getBoundingClientRect();
+  drag={el,x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,w:r.width,h:r.height,ghost:null};
+});
+addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(!drag.ghost){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;
+    const g=drag.ghost=drag.el.cloneNode(true);g.classList.add('ghost');g.classList.remove('sel');
+    g.style.width=drag.w+'px';g.style.height=drag.h+'px';document.body.append(g);drag.el.classList.add('lift');
+  }
+  drag.ghost.style.left=e.clientX-drag.dx+'px';drag.ghost.style.top=e.clientY-drag.dy+'px';
+});
+function endDrag(e,cancel){
+  if(!drag)return;const d=drag;drag=null;d.el.classList.remove('lift');
+  if(d.ghost){
+    d.ghost.remove();if(cancel)return;
+    const slot=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-slot]');
+    if(slot&&stage.contains(slot))drop(d.el,slot,false);
+  }else if(!cancel){
+    const host=d.el.parentElement.closest('[data-slot]');
+    if(sel&&sel!==d.el&&host&&!(host.matches('.tray')&&sel.parentElement.matches('.tray')))return drop(sel,host,true);
+    if(sel)sel.classList.remove('sel');
+    sel=sel===d.el?null:d.el;if(sel)sel.classList.add('sel');
+  }
+}
+addEventListener('pointerup',e=>endDrag(e,false));
+addEventListener('pointercancel',e=>endDrag(e,true));
+stage.addEventListener('click',e=>{
+  if(!G||G.done||popOpen())return;
+  const t=G.tasks[G.i],T=TYPES[t.type];
+  const act=e.target.closest('[data-act]');
+  if(act){      // Schaltflächen: Eingabefeld, Ziffernfeld, Prüfen, sonst Methoden des Aufgabentyps
+    const a=act.dataset.act;
+    if(a==='fld')return padFocus(act,stage);
+    if(a==='key')return padKey(act.dataset.k,stage);
+    if(a==='chk')return T.check(t,padVals(stage));
+    return T[a](t,act);
+  }
+  if(e.target.closest('.drag'))return;
+  const slot=e.target.closest('[data-slot]');if(!slot)return;
+  if(sel)drop(sel,slot,true);else if(T.tap)T.tap(t,slot);
+  else say('tip','So geht es','Ziehe ein Teil hierher. Oder tippe erst das Teil an und dann das Ziel.');
+});
+
+$('#tipBtn').onclick=()=>{
+  if(!G||G.mode!=='task')return;
+  const t=G.tasks[G.i];
+  if(!G.tipped&&!G.done){
+    if(G.tipsLeft<=0)return say('tip','Keine Tipps mehr',`Du hast alle ${G.S.tips} Tipps für diese Stufe verbraucht.`);
+    G.tipped=true;G.tips++;G.tipsLeft--;hud();
+  }
+  say('tip','Tipp',t.tip||TYPES[t.type].tip(t));
+};
+document.querySelectorAll('.quit').forEach(b=>b.onclick=()=>show('quit'));
+$('#quitNo').onclick=()=>{if(Bz)show('boss');else{show('play');layout()}};
+$('#quitYes').onclick=()=>{G=null;Bz=null;sel=null;renderHome()};
+$('#skip').onclick=()=>{if(teacher&&G&&G.mode==='task'&&!popOpen()){G.T=true;solved('','Übersprungen')}};
+$('#stufen').onclick=e=>{const b=e.target.closest('[data-lv]');if(b&&!b.disabled)startLevel(false,null,+b.dataset.lv)};
+$('#toMap').onclick=()=>renderHome();
+/* Neuer Spieler: Speicher leeren (zweimal tippen). Spielstand laden: Code eingeben, Spielstand wird ersetzt. */
+const hasData=s=>!!(s.won||s.ty||s.pa||Object.values(s.st||{}).some(x=>x.n)||Object.keys(s.prog||{}).length);
+$('#reset').onclick=()=>{const r=$('#reset');
+  if(!r.dataset.armed){r.dataset.armed='1';r.textContent='Wirklich? Schreib vorher deinen Code auf! Zum Löschen noch einmal tippen.';return}
+  store.set({});renderHome('<b>Neuer Spieler</b>Alles steht auf Anfang. Viel Erfolg!')};
+$('#loadBtn').onclick=()=>{const b=$('#loadbox');b.hidden=!b.hidden;$('#homeMsg').hidden=true;if(!b.hidden)$('#loadIn').focus()};
+$('#loadIn').oninput=()=>{$('#loadGo').dataset.armed='';$('#loadGo').textContent='Laden'};
+$('#loadIn').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#loadGo').click()}};
+$('#loadGo').onclick=()=>{
+  const g=$('#loadGo'),d=decodeAny($('#loadIn').value),msg=$('#loadMsg');
+  if(d.err){msg.className='bad';msg.textContent=`Dieser Code stimmt nicht (${d.err}). Prüfe jedes Zeichen: Im Code gibt es keine 0, keine 1, kein I und kein O.`;return}
+  if(hasData(store.get())&&makeCode(store.get())!==d.code&&!g.dataset.armed){g.dataset.armed='1';g.textContent='Ersetzen';
+    msg.className='';msg.textContent='Auf diesem Gerät gibt es schon einen anderen Spielstand. Er wird ersetzt. Tippe zum Bestätigen auf „Ersetzen“.';return}
+  store.set(restoreFrom(d));
+  renderHome(`<b>Spielstand geladen</b>${d.won?`Geschafft bis Stufe ${d.won} · ${STUFEN[d.won-1].name}.`:'Noch keine Stufe geschafft.'} Weiter geht’s!`);
+};
+
+/* ---- Tastatur: Pfeiltasten oder A/D zum Gehen, Ziffern für das Ziffernfeld, Endgegner: Tasten 1-4 ---- */
+$('#sceneBox').addEventListener('pointerdown',e=>{
+  if(!G||G.mode!=='walk')return;
+  const r=$('#sceneBox svg').getBoundingClientRect();
+  W.tx=Math.max(40,Math.min(EXIT,(e.clientX-r.left)/r.width*800));
+});
+const walkKey=e=>({arrowright:'r',d:'r',arrowleft:'l',a:'l'})[(e.key||'').toLowerCase()];
+function padRoot(){
+  if(Bz&&!$('#boss').hidden)return Bz.inp&&Bz.state==='fly'?$('#bopts'):null;
+  return G&&G.mode==='task'&&!G.done&&!$('#play').hidden&&$('#stage .pad')?$('#stage'):null;
+}
+addEventListener('keydown',e=>{
+  if(e.target.matches?.('input.nf')&&e.key==='Enter'&&!popOpen()){      // Enter im Eingabefeld = Prüfen
+    e.preventDefault();const pr=padRoot();if(pr)pr===stage?TYPES[G.tasks[G.i].type].check(G.tasks[G.i],padVals(stage)):bossCheck();return}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.target.matches?.('input'))return;
+  if(popOpen()){if(e.key==='Escape'){e.preventDefault();closePop()}return}
+  const pr=padRoot();
+  if(pr){
+    const k=/^[0-9]$/.test(e.key)?e.key:e.key==='-'?'-':e.key==='Backspace'?'x':null;
+    if(k){e.preventDefault();return padKey(k,pr)}      // tippt ins markierte Feld und setzt den Cursor hinein
+    if(e.key==='Enter'&&!e.target.closest?.('button')){e.preventDefault();return pr===stage?TYPES[G.tasks[G.i].type].check(G.tasks[G.i],padVals(stage)):bossCheck()}
+    if(e.key==='Tab'&&$$('.nf',pr).filter(f=>!f.disabled&&f.offsetParent).length>1){      // Tab: nächstes Eingabefeld
+      e.preventDefault();const fs=$$('.nf',pr).filter(f=>!f.disabled&&f.offsetParent),c=fs.findIndex(f=>f.classList.contains('on'));
+      return padFocus(fs[(c+1)%fs.length],pr);
+    }
+  }
+  if(Bz&&!$('#boss').hidden){
+    const b=!Bz.inp&&/^[1-9]$/.test(e.key)&&$$('#bopts .opt')[e.key-1];
+    if(b){e.preventDefault();b.click()}
+    return;
+  }
+  const k=walkKey(e);
+  if(k&&G&&G.mode==='walk'&&!$('#play').hidden){W.keys[k]=true;e.preventDefault()}
+});
+addEventListener('keyup',e=>{const k=walkKey(e);if(k)W.keys[k]=false});
+addEventListener('blur',()=>{W.keys.l=W.keys.r=false});
+
+/* ---- Lehrermodus: Strg+Umschalt+L oder fünfmal schnell auf den Titel tippen. Alle Stufen offen, nichts wird gespeichert. ---- */
+function toggleTeacher(){teacher=!teacher;if(!teacher)noTimer=false;$('#tbadge').hidden=!teacher;if(teacher&&G)G.T=true;hud();if(!$('#map').hidden)renderHome()}
+addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='l'){e.preventDefault();toggleTeacher()}});
+let taps=[];
+$('#title').addEventListener('pointerdown',()=>{
+  const now=Date.now();taps=taps.filter(x=>now-x<2500);taps.push(now);
+  if(taps.length>=5){taps=[];toggleTeacher()}
+});
+
+/* ---- Start, mit Erhalt des Spielstands bei Aktualisierungen ---- */
+function boot(d){
+  d=d||window.claude?.hot?.data||{};
+  renderHome();
+  if(d.tasks){
+    startLevel(true,null,d.lv||1);G.tasks=d.tasks;const n=G.tasks.length;
+    G.i=Math.min(d.i||0,n);G.errs=d.errs||0;G.tips=d.tips||0;G.T=!!d.T;G.lives=d.lives||G.S.lives;G.tipsLeft=d.tl??G.S.tips;
+    show('play');enterPlace(G.i<n?G.tasks[G.i].g:G.L.groups.length-1);
+  }
+}
+window.claude?.hot?.snapshot?.(()=>G&&!G.fin&&!$('#play').hidden?{tasks:G.tasks,i:G.i,errs:G.errs,tips:G.tips,T:G.T,lives:G.lives,tl:G.tipsLeft,lv:G.lv}:{});
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot();
+</script>
+</body></html>
